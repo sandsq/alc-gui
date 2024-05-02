@@ -16,13 +16,13 @@ fn main() {
 		// let id = app.listen_global("selected_toml_changed", |event| {
 		// 	println!("got event with payload {:?}", event.payload());
 		// });
-		// app.unlisten(id);
 		Ok(())
 	})
     .invoke_handler(tauri::generate_handler![
 		greet, 
 		get_layout_presets,
-		get_all_keycodes])
+		get_all_keycodes,
+		process_config])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -48,4 +48,9 @@ fn get_all_keycodes() -> Vec<String> {
 		.filter(|x| *x != Keycode::_PLACEHOLDER)
 		.map(|x| x.to_string())
 		.collect()
+}
+
+#[tauri::command]
+fn process_config(config_file: String) {
+	println!("received {} as the config file", config_file);
 }

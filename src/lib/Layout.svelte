@@ -1,3 +1,4 @@
+
 <script>
 	import { invoke } from '@tauri-apps/api/tauri'
 	import { onMount } from 'svelte'
@@ -15,9 +16,10 @@
 			}]
 		});
 		if (selected_file !== null) {
-			toml_file = selected_file
-			console.log(selected_file)
-			emit("selected_toml_changed", toml_file)
+			await invoke('process_config', {configFile: "selected_file"})
+			// toml_file = selected_file
+			// console.log(selected_file)
+			// emit("selected_toml_changed", toml_file)
 		}
 	}
 
@@ -52,15 +54,20 @@
 	})
 
 </script>
-
 <style lang="scss">
-	@import "../styles/colors.scss";
+	@use "../styles/global.scss";
 	.key {
 		background-color: $key_background;
 		height: 48px;
 		width: 48px;
+		border: $key_outline solid 4px;
+		border-radius: 4px;
+	}
+	table {
+		border-spacing: 20px;
 	}
 </style>
+
 
 <p>size: {selected_size}</p>
 <p>file: {toml_file}</p>
