@@ -1,13 +1,15 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::collections::HashMap;
-
-use alc::keyboard::layout_presets::get_all_layout_size_presets;
+use strum::IntoEnumIterator;
+use alc::{keyboard::layout_presets::get_all_layout_size_presets, text_processor::keycode::Keycode};
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![greet, get_layout_presets])
+    .invoke_handler(tauri::generate_handler![
+		greet, 
+		get_layout_presets,
+		get_all_keycodes])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -24,7 +26,12 @@ fn get_layout_presets() -> Vec<(usize, usize)> {
 	// for (i, size) in sizes.iter().enumerate() {
 	// 	out.insert(i, *size);
 	// }
-	
 	sizes
+}
 
+#[tauri::command]
+fn get_all_keycodes() -> Vec<String> {
+	Keycode::iter()
+		.map(|x| x.to_string())
+		.collect()
 }
