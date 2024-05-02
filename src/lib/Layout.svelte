@@ -2,19 +2,25 @@
 	import { invoke } from '@tauri-apps/api/tauri'
 	import { onMount } from 'svelte'
 	import { open } from '@tauri-apps/api/dialog';
+	import { emit, listen } from '@tauri-apps/api/event'
 
 	/** @type {string | string[] | null}*/
 	let toml_file;
-
 	async function open_toml() {
-		toml_file = await open({
+		const selected_file = await open({
 			multiple: false,
 			filters: [{
 				name: 'Config',
 				extensions: ['toml']
 			}]
 		});
+		if (selected_file !== null) {
+			toml_file = selected_file
+			console.log(selected_file)
+			emit("selected_toml_changed", toml_file)
+		}
 	}
+
 
 	/** @type {string[][]}*/
 	let layout;
@@ -56,17 +62,21 @@
 	}
 </style>
 
-<button on:click={open_toml}>Open</button>
-
-{#await get_sizes then}
-<select bind:value={selected_size}>
-	{#each layout_sizes as size}
-		<option value={size}>{size[0]} x {size[1]}</option>
-	{/each}
-</select>
-{/await}
 <p>size: {selected_size}</p>
 <p>file: {toml_file}</p>
+
+<div>
+	<button on:click={open_toml}>Load config</button>
+	or
+	choose layout size:
+	{#await get_sizes then}
+	<select bind:value={selected_size}>
+		{#each layout_sizes as size}
+			<option value={size}>{size[0]} x {size[1]}</option>
+		{/each}
+	</select>
+	{/await}
+</div>
 
 {#await get_keycodes then}
 {#if selected_size}

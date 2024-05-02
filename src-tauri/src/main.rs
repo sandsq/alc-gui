@@ -3,9 +3,22 @@
 
 use strum::IntoEnumIterator;
 use alc::{keyboard::layout_presets::get_all_layout_size_presets, text_processor::keycode::Keycode};
+use tauri::Manager;
 
 fn main() {
   tauri::Builder::default()
+    .setup(|app| {
+		app.listen_global("selected_toml_changed", |event| {
+			let toml_file = event.payload();
+			println!("toml file {}", toml_file.unwrap());
+		});
+		// {
+		// let id = app.listen_global("selected_toml_changed", |event| {
+		// 	println!("got event with payload {:?}", event.payload());
+		// });
+		// app.unlisten(id);
+		Ok(())
+	})
     .invoke_handler(tauri::generate_handler![
 		greet, 
 		get_layout_presets,
@@ -32,6 +45,7 @@ fn get_layout_presets() -> Vec<(usize, usize)> {
 #[tauri::command]
 fn get_all_keycodes() -> Vec<String> {
 	Keycode::iter()
+		.filter(|x| *x != Keycode::_PLACEHOLDER)
 		.map(|x| x.to_string())
 		.collect()
 }
