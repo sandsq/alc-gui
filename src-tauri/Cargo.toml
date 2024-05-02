@@ -18,7 +18,10 @@ tauri-build = { version = "1.5.1", features = [] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1.6.2", features = [] }
-alc = { git = "https://github.com/sandsq/alc-rs.git" }
+# alc = { git = "https://github.com/sandsq/alc-rs.git" }
+alc = { path = "../../alc-rs" }
+strum = "0.26.2"
+strum_macros = "0.26.2"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

@@ -29,7 +29,6 @@ dependencies = [
 [[package]]
 name = "alc"
 version = "0.1.3"
-source = "git+https://github.com/sandsq/alc-rs.git#7e022372ac114a076a533412977a0f6f5ea38a8e"
 dependencies = [
  "array2d",
  "clap",
@@ -141,6 +140,8 @@ dependencies = [
  "alc",
  "serde",
  "serde_json",
+ "strum",
+ "strum_macros",
  "tauri",
  "tauri-build",
 ]
