@@ -3,7 +3,24 @@
 	import { invoke } from '@tauri-apps/api/tauri'
 	import { onMount } from 'svelte'
 	import { open } from '@tauri-apps/api/dialog';
-	import { emit, listen } from '@tauri-apps/api/event'
+	import { emit, listen, once } from '@tauri-apps/api/event'
+
+	/**
+	* @typedef Payload
+	* @type {object}
+	* @property {string} message
+	* @property {boolean} pass
+	*/
+	async function start_config_error_listener() {
+		const unlisten = await once('config-error', (event) => {
+			if (event.payload.pass === false) {
+				alert(event.payload.message);
+				alert_shown = true;
+				console.log(event.payload.message);
+				toml_file = "";
+			}
+		});
+	}
 
 	/** @type {string | string[] | null}*/
 	let toml_file;
@@ -17,12 +34,11 @@
 		});
 		if (selected_file !== null) {
 			await invoke('process_config', {configFile: selected_file})
-			// toml_file = selected_file
+			toml_file = selected_file
 			// console.log(selected_file)
 			// emit("selected_toml_changed", toml_file)
 		}
 	}
-
 
 	/** @type {string[][]}*/
 	let layout;
@@ -51,6 +67,7 @@
 	onMount(() => {
 		get_sizes()
 		get_keycodes()
+		start_config_error_listener()
 	})
 
 </script>
