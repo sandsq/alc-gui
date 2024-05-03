@@ -16,7 +16,7 @@
 			}]
 		});
 		if (selected_file !== null) {
-			await invoke('process_config', {configFile: "selected_file"})
+			await invoke('process_config', {configFile: selected_file})
 			// toml_file = selected_file
 			// console.log(selected_file)
 			// emit("selected_toml_changed", toml_file)
@@ -55,7 +55,7 @@
 
 </script>
 <style lang="scss">
-	@use "../styles/global.scss";
+	@use "../styles/colors.scss" as *;
 	.key {
 		background-color: $key_background;
 		height: 48px;
@@ -66,12 +66,16 @@
 	table {
 		border-spacing: 20px;
 	}
+	h1 {
+		font-size: 32px;
+	}
 </style>
 
-
+<h1>Debug section</h1>
 <p>size: {selected_size}</p>
 <p>file: {toml_file}</p>
 
+<h1>Layout section</h1>
 <div>
 	<button on:click={open_toml}>Load config</button>
 	or
