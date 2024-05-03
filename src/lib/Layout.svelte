@@ -1,9 +1,11 @@
 
 <script>
+	import Key from "./Key.svelte"
 	import { invoke } from '@tauri-apps/api/tauri'
 	import { onMount } from 'svelte'
 	import { open } from '@tauri-apps/api/dialog';
 	import { emit, listen, once } from '@tauri-apps/api/event'
+	import { setContext } from "svelte";
 
 	/**
 	* @typedef Payload
@@ -38,6 +40,7 @@
 					selected_toml_file = opened_file
 					selected_size = [res.layout_info.num_rows, res.layout_info.num_cols]
 					selected_num_layers = (res.layout_info.layout.match(/Layer/g) || []).length;
+					resize_layout()
 				})
 				.catch((e) => {
 					alert(e);
@@ -115,17 +118,20 @@
 	}
 	
 	/**
-	 * @param {number} layer
-	 * @param {number} row
-	 * @param {number} col
+	 * @param {[number, number, number]} pos
 	*/
-	function set_symmetric(layer, row, col) {
+	function set_symmetric(pos) {
+		let layer = pos[0]
+		let row = pos[1]
+		let col = pos[2]
 		let value_to_set = !layout[layer][row][col].symmetric
 		layout[layer][row][col].symmetric = value_to_set
 		let total_cols = layout[0][0].length;
 		let symmetric_col = (total_cols - 1) - col;
 		layout[layer][row][symmetric_col].symmetric = value_to_set
 	}
+
+	setContext("symmetric_position", set_symmetric)
 
 	onMount(() => {
 		get_sizes()
@@ -152,29 +158,9 @@
 
 <style lang="scss">
 	@use "../styles/colors.scss" as *;
-	.key {
-		background-color: $key_background;
-		height: 32px;
-		width: 32px;
-		border: $key_outline solid 4px;
-		border-radius: 4px;
-		font-size: 16px;
-		text-align: center;
-	}
-	.key_flags {
-		padding: 0px;
-	}
-	.key_flags button {
-		padding: 0px;
-		width: 24px;
-		height: 24px;
-	}
 	.column {
 		float: left;
 		width: 50%;
-	}
-	select, button {
-		font-size: 16px;
 	}
 	table {
 		border-spacing: 5px;
@@ -183,6 +169,9 @@
 	h1 {
 		font-size: 32px;
 	}
+	// select, button {
+	// 	font-size: 16px;
+	// }
 </style>
 
 <div class="column">
@@ -246,8 +235,9 @@
 		<tr>
 			<th>{i}</th>
 			{#each {length: num_cols} as _, j}
-				<td class="key">
-					<select bind:value={layout[n][i][j].keycode}>
+				<td>
+					<Key bind:keycode={layout[n][i][j].keycode} keycodes={keycodes} bind:locked={layout[n][i][j].locked} bind:symmetric={layout[n][i][j].symmetric} current_key_location={[n, i, j]} num_cols={num_cols} />
+					<!-- <select bind:value={layout[n][i][j].keycode}>
 						{#each keycodes as keycode}
 							<option value={keycode}>{keycode}</option>
 						{/each}
@@ -260,7 +250,6 @@
 							🔓
 							{/if}
 						</button>
-						<!-- <button on:click={() => layout[n][i][j].symmetric = !layout[n][i][j].symmetric}> -->
 						<button on:click={() => set_symmetric(n, i, j)} disabled={j == (num_cols - 1) / 2}>
 							{#if layout[n][i][j].symmetric}
 							S
@@ -268,7 +257,7 @@
 							A
 							{/if}
 						</button>
-					</div>
+					</div> -->
 				</td>
 			{/each}
 		</tr>
