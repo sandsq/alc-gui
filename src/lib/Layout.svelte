@@ -57,15 +57,13 @@
 	let max_layers = 15;
 
 	/** @type {string[][][]}*/
-	let layout = [];
+	let layout;
 
 	/** @type {string[]}*/
 	let keycodes = [];
 	/** @type {string}*/
 	let selected_keycode;
 
-	// /** @type {string[]} */
-	// let layout_sizes = []
 	async function get_sizes() {
 		layout_sizes = await invoke('get_layout_presets')
 		selected_size = layout_sizes[0]
@@ -76,14 +74,14 @@
 	}
 
 	function resize_layout() {
-		layout = [];
 		if (selected_num_layers && selected_size) {	
+			layout = [];
 			for (let n = 0; n < selected_num_layers; n++) {
 				layout.push([]);
 				for (let i = 0; i < selected_size[0]; i++) {
 					layout[n].push([]);
 					for (let j = 0; j < selected_size[1]; j++) {
-						layout[n][i].push("A");
+						layout[n][i].push("NO");
 					}
 				}
 			}
@@ -96,13 +94,25 @@
 		resize_layout()
 		// start_config_error_listener()
 	})
+
+	// $: {
+	// 	layout = [];
+	// 	if (selected_num_layers && selected_size) {	
+	// 		for (let n = 0; n < selected_num_layers; n++) {
+	// 			layout.push([]);
+	// 			for (let i = 0; i < selected_size[0]; i++) {
+	// 				layout[n].push([]);
+	// 				for (let j = 0; j < selected_size[1]; j++) {
+	// 					layout[n][i].push("A");
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 </script>
 
 <style lang="scss">
 	@use "../styles/colors.scss" as *;
-	:global(body) {
-		background-color: $background1;
-	}
 	.key {
 		background-color: $key_background;
 		height: 32px;
@@ -127,7 +137,7 @@
 <p>size: {selected_size}</p>
 <p>file: {selected_toml_file}</p>
 
-
+{#if layout}
 {#each layout as layer}
 <table>
 	{#each layer as row}
@@ -139,7 +149,7 @@
 	{/each}
 </table>
 {/each}
-
+{/if}
 
 
 <h1>Layout section</h1>
@@ -148,7 +158,6 @@
 	or
 	choose layout size:
 	{#await get_sizes then}
-	
 	<select bind:value={selected_size} on:change={resize_layout}> 
 		{#each layout_sizes as size}
 			<option value={size}>{size[0]} x {size[1]}</option>
@@ -163,16 +172,16 @@
 	</select>	
 </div>
 
-{#await get_keycodes then}
-{#if selected_size && selected_num_layers}
-{#each {length: selected_num_layers} as _, n}
-	<table>
-		{#each {length: selected_size[0]} as _, i}
+<!-- {#await get_keycodes then} -->
+<!-- {#if selected_size && selected_num_layers} -->
+{#if layout}
+{#each {length: layout.length} as _, n}
+	<table>	
+		{#each {length: layout[0].length} as _, i}
 		<tr>
-			{#each {length: selected_size[1]} as _, j}
+			{#each {length: layout[0][0].length} as _, j}
 				<td class="key">
-					<!-- layout[n][i][j] -->
-					<select bind:value={layout[n]}>
+					<select bind:value={layout[n][i][j]}>
 						{#each keycodes as keycode}
 							<option value={keycode}>{keycode}</option>
 						{/each}
@@ -185,4 +194,4 @@
 	</table>
 {/each}
 {/if}
-{/await}
+<!-- {/await} -->
