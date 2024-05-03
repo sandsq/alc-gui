@@ -1,7 +1,7 @@
 <script>
 	import Layout from '../lib/Layout.svelte'
 </script>
-<style lang="scss">
+<!-- <style lang="scss">
 	@use "../styles/colors.scss" as *;
 	:global(*) {
 		font-family: Ubuntu Mono, monospace;
@@ -12,5 +12,5 @@
 		background-color: $background1;
 		color: $text;
 	}
-</style>
+</style> -->
 <Layout />

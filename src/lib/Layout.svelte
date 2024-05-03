@@ -100,6 +100,9 @@
 
 <style lang="scss">
 	@use "../styles/colors.scss" as *;
+	:global(body) {
+		background-color: $background1;
+	}
 	.key {
 		background-color: $key_background;
 		height: 32px;
