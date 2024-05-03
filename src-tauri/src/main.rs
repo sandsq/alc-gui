@@ -46,7 +46,7 @@ fn get_layout_presets() -> Vec<(usize, usize)> {
 fn get_all_keycodes() -> Vec<String> {
 	Keycode::iter()
 		.filter(|x| *x != Keycode::_PLACEHOLDER)
-		.map(|x| x.to_string())
+		.map(|x| x.to_string().replace('_', ""))
 		.collect()
 }
 

@@ -48,16 +48,16 @@
 		}
 	}
 
-	/** @type {string[][]}*/
-	let layout;
-
 	/** @type {[number, number][]}*/
 	let layout_sizes = [];
 	/** @type {[number, number]}*/
-	let selected_size;
+	let selected_size = [2, 4];
 	/** @type {number}*/
 	let selected_num_layers = 3;
 	let max_layers = 15;
+
+	/** @type {string[][][]}*/
+	let layout = [];
 
 	/** @type {string[]}*/
 	let keycodes = [];
@@ -74,14 +74,30 @@
 		keycodes = await invoke('get_all_keycodes')
 		selected_keycode = keycodes[0]
 	}
-	
+
+	function resize_layout() {
+		layout = [];
+		if (selected_num_layers && selected_size) {	
+			for (let n = 0; n < selected_num_layers; n++) {
+				layout.push([]);
+				for (let i = 0; i < selected_size[0]; i++) {
+					layout[n].push([]);
+					for (let j = 0; j < selected_size[1]; j++) {
+						layout[n][i].push("A");
+					}
+				}
+			}
+		}
+	}
+
 	onMount(() => {
 		get_sizes()
 		get_keycodes()
+		resize_layout()
 		// start_config_error_listener()
 	})
-
 </script>
+
 <style lang="scss">
 	@use "../styles/colors.scss" as *;
 	.key {
@@ -108,20 +124,36 @@
 <p>size: {selected_size}</p>
 <p>file: {selected_toml_file}</p>
 
+
+{#each layout as layer}
+<table>
+	{#each layer as row}
+	<tr>
+		{#each row as col}
+		<td>{col}</td>
+		{/each}
+	</tr>	
+	{/each}
+</table>
+{/each}
+
+
+
 <h1>Layout section</h1>
 <div>
 	<button on:click={open_toml}>Load config</button>
 	or
 	choose layout size:
 	{#await get_sizes then}
-	<select bind:value={selected_size}>
+	
+	<select bind:value={selected_size} on:change={resize_layout}> 
 		{#each layout_sizes as size}
 			<option value={size}>{size[0]} x {size[1]}</option>
 		{/each}
 	</select>
 	{/await}
 	and number of layers:
-	<select bind:value={selected_num_layers}>
+	<select bind:value={selected_num_layers} on:change={resize_layout}>
 		{#each {length: max_layers} as _, i}
 			<option value={i+1}>{i+1}</option>
 		{/each}
@@ -136,7 +168,8 @@
 		<tr>
 			{#each {length: selected_size[1]} as _, j}
 				<td class="key">
-					<select bind:value={selected_keycode}>
+					<!-- layout[n][i][j] -->
+					<select bind:value={layout[n]}>
 						{#each keycodes as keycode}
 							<option value={keycode}>{keycode}</option>
 						{/each}
