@@ -22,20 +22,22 @@
 	// }
 
 	/** @type {string | string[] | null}*/
-	let toml_file;
+	let selected_toml_file;
 	async function open_toml() {
-		const selected_file = await open({
+		const opened_file = await open({
 			multiple: false,
 			filters: [{
 				name: 'Config',
 				extensions: ['toml']
 			}]
 		});
-		if (selected_file !== null) {
-			invoke('process_config', {configFile: selected_file})
+		if (opened_file !== null) {
+			invoke('process_config', {configFile: opened_file})
 				.then((res) => {
-					console.log(`successfully loaded ${selected_file}`)
-					toml_file = selected_file
+					console.log(`successfully loaded ${opened_file}`)
+					selected_toml_file = opened_file
+					selected_size = [res.layout_info.num_rows, res.layout_info.num_cols]
+					selected_num_layers = (res.layout_info.layout.match(/Layer/g) || []).length;
 				})
 				.catch((e) => {
 					alert(e);
@@ -53,6 +55,9 @@
 	let layout_sizes = [];
 	/** @type {[number, number]}*/
 	let selected_size;
+	/** @type {number}*/
+	let selected_num_layers = 3;
+	let max_layers = 15;
 
 	/** @type {string[]}*/
 	let keycodes = [];
@@ -81,13 +86,18 @@
 	@use "../styles/colors.scss" as *;
 	.key {
 		background-color: $key_background;
-		height: 48px;
-		width: 48px;
+		height: 32px;
+		width: 32px;
 		border: $key_outline solid 4px;
 		border-radius: 4px;
+		font-size: 16px;
+	}
+	select, button {
+		font-size: 16px;
 	}
 	table {
-		border-spacing: 20px;
+		border-spacing: 5px;
+		margin-bottom: 10px;
 	}
 	h1 {
 		font-size: 32px;
@@ -96,7 +106,7 @@
 
 <h1>Debug section</h1>
 <p>size: {selected_size}</p>
-<p>file: {toml_file}</p>
+<p>file: {selected_toml_file}</p>
 
 <h1>Layout section</h1>
 <div>
@@ -110,25 +120,33 @@
 		{/each}
 	</select>
 	{/await}
+	and number of layers:
+	<select bind:value={selected_num_layers}>
+		{#each {length: max_layers} as _, i}
+			<option value={i+1}>{i+1}</option>
+		{/each}
+	</select>	
 </div>
 
 {#await get_keycodes then}
-{#if selected_size}
-<table>
-	{#each {length: selected_size[0]} as _, i}
-	<tr>
-		{#each {length: selected_size[1]} as _, j}
-			<td class="key">
-				<select bind:value={selected_keycode}>
-					{#each keycodes as keycode}
-						<option value={keycode}>{keycode}</option>
-					{/each}
-				</select>
-				({i}, {j})
-			</td>
+{#if selected_size && selected_num_layers}
+{#each {length: selected_num_layers} as _, n}
+	<table>
+		{#each {length: selected_size[0]} as _, i}
+		<tr>
+			{#each {length: selected_size[1]} as _, j}
+				<td class="key">
+					<select bind:value={selected_keycode}>
+						{#each keycodes as keycode}
+							<option value={keycode}>{keycode}</option>
+						{/each}
+					</select>
+					({i}, {j})
+				</td>
+			{/each}
+		</tr>
 		{/each}
-	</tr>
-	{/each}
-</table>
+	</table>
+{/each}
 {/if}
 {/await}
