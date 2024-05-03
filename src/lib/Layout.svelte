@@ -158,13 +158,19 @@
 
 <style lang="scss">
 	@use "../styles/colors.scss" as *;
+	:global(*) {
+		color: $text;
+	}
 	.column {
 		float: left;
 		width: 50%;
 	}
 	table {
-		border-spacing: 5px;
-		margin-bottom: 10px;
+		border-spacing: 2px;
+		margin-bottom: 20px;
+	}
+	.column_indexes {
+		padding-bottom: 5px;
 	}
 	h1 {
 		font-size: 32px;
@@ -225,15 +231,15 @@
 		{#each {length: layout[0].length} as _, i}
 		{@const num_cols = layout[0][0].length}
 		<tr>
-			<th></th>
 			{#if i == 0}
+				<th class="column_indexes"></th>
 				{#each {length: layout[0][0].length} as _, j}
-					<th>{j}</th>
+					<th class="column_indexes">{j}</th>
 				{/each}
 			{/if}
 		</tr>
 		<tr>
-			<th>{i}</th>
+			<th>{i}&nbsp;</th>
 			{#each {length: num_cols} as _, j}
 				<td>
 					<Key bind:keycode={layout[n][i][j].keycode} keycodes={keycodes} bind:locked={layout[n][i][j].locked} bind:symmetric={layout[n][i][j].symmetric} current_key_location={[n, i, j]} num_cols={num_cols} />
