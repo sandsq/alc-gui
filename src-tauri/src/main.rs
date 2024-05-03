@@ -64,26 +64,29 @@ impl Payload {
 }
 
 #[tauri::command]
-fn process_config(app_handle: tauri::AppHandle, config_file: String) {
+fn process_config(app_handle: tauri::AppHandle, config_file: String) -> Result<(), AlcError> {
 	println!("received {} as the config file", config_file);
-	let lo = match LayoutOptimizerTomlAdapter::try_from_toml_file(config_file.as_str()) {
-		Ok(v) => v,
-		Err(e) => {
-			println!("{}", e);
-			app_handle.emit_all("config-error", Payload::new(e.to_string(), false)).unwrap();
-			return;
-		},
-	};
-	let size_variant = match get_size_variant((lo.layout_info.num_rows, lo.layout_info.num_cols)) {
-		Ok(v) => v,
-		Err(e) => {
-			println!("{}", e);
-			app_handle.emit_all("config-error", Payload::new(e.to_string(), false)).unwrap();
-			return;
-		}
-	};
+	let lo = LayoutOptimizerTomlAdapter::try_from_toml_file(config_file.as_str())?;
+	// {
+	// 	Ok(v) => v,
+	// 	Err(e) => {
+	// 		println!("{}", e);
+	// 		app_handle.emit_all("config-error", Payload::new(e.to_string(), false)).unwrap();
+	// 		return;
+	// 	},
+	// };
+	let size_variant = get_size_variant((lo.layout_info.num_rows, lo.layout_info.num_cols))?;
+	// {
+	// 	Ok(v) => v,
+	// 	Err(e) => {
+	// 		println!("{}", e);
+	// 		app_handle.emit_all("config-error", Payload::new(e.to_string(), false)).unwrap();
+	// 		return;
+	// 	}
+	// };
 	// match optimize_from_toml(config_file) {
 	// 	Ok(v) => v,
 	// 	Err(e) => println!("{}", e),
 	// }
+	Ok(())
 }

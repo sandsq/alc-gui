@@ -11,16 +11,15 @@
 	* @property {string} message
 	* @property {boolean} pass
 	*/
-	async function start_config_error_listener() {
-		const unlisten = await once('config-error', (event) => {
-			if (event.payload.pass === false) {
-				alert(event.payload.message);
-				alert_shown = true;
-				console.log(event.payload.message);
-				toml_file = "";
-			}
-		});
-	}
+	// async function start_config_error_listener() {
+	// 	const unlisten = await once('config-error', (event) => {
+	// 		if (event.payload.pass === false) {
+	// 			alert(event.payload.message);
+	// 			console.log(event.payload.message);
+	// 			toml_file = "";
+	// 		}
+	// 	});
+	// }
 
 	/** @type {string | string[] | null}*/
 	let toml_file;
@@ -33,8 +32,15 @@
 			}]
 		});
 		if (selected_file !== null) {
-			await invoke('process_config', {configFile: selected_file})
-			toml_file = selected_file
+			invoke('process_config', {configFile: selected_file})
+				.then((res) => {
+					console.log(`successfully loaded ${selected_file}`)
+					toml_file = selected_file
+				})
+				.catch((e) => {
+					alert(e);
+					console.error(e);
+				})
 			// console.log(selected_file)
 			// emit("selected_toml_changed", toml_file)
 		}
@@ -67,7 +73,7 @@
 	onMount(() => {
 		get_sizes()
 		get_keycodes()
-		start_config_error_listener()
+		// start_config_error_listener()
 	})
 
 </script>
