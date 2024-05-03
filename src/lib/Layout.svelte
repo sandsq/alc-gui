@@ -56,13 +56,38 @@
 	let selected_num_layers = 3;
 	let max_layers = 15;
 
-	/** @type {string[][][]}*/
+
+	/**
+	* @typedef {Object} Key
+	* @property {string} keycode
+	* @property {boolean} locked
+	* @property {boolean} symmetric
+	*/
+	/**
+	 * @param {string} keycode
+	 * @param {boolean} locked
+	 * @param {boolean} symmetric
+	 * @returns {Key}
+	 */
+	function createKey(keycode, locked, symmetric) {
+		/**
+		 * @type {Key}
+		 */
+		const key = {
+			keycode, locked, symmetric
+		};
+
+		return key;
+	}
+	/** @type {Key[][][]}*/
 	let layout;
 
 	/** @type {string[]}*/
 	let keycodes = [];
 	/** @type {string}*/
 	let selected_keycode;
+	/** @type {boolean}*/
+	let selected_locked_test;
 
 	async function get_sizes() {
 		layout_sizes = await invoke('get_layout_presets')
@@ -81,11 +106,25 @@
 				for (let i = 0; i < selected_size[0]; i++) {
 					layout[n].push([]);
 					for (let j = 0; j < selected_size[1]; j++) {
-						layout[n][i].push("NO");
+						let k = createKey("NO", false, false);
+						layout[n][i].push(k);
 					}
 				}
 			}
 		}
+	}
+	
+	/**
+	 * @param {number} layer
+	 * @param {number} row
+	 * @param {number} col
+	*/
+	function set_symmetric(layer, row, col) {
+		let value_to_set = !layout[layer][row][col].symmetric
+		layout[layer][row][col].symmetric = value_to_set
+		let total_cols = layout[0][0].length;
+		let symmetric_col = (total_cols - 1) - col;
+		layout[layer][row][symmetric_col].symmetric = value_to_set
 	}
 
 	onMount(() => {
@@ -120,6 +159,19 @@
 		border: $key_outline solid 4px;
 		border-radius: 4px;
 		font-size: 16px;
+		text-align: center;
+	}
+	.key_flags {
+		padding: 0px;
+	}
+	.key_flags button {
+		padding: 0px;
+		width: 24px;
+		height: 24px;
+	}
+	.column {
+		float: left;
+		width: 50%;
 	}
 	select, button {
 		font-size: 16px;
@@ -133,23 +185,27 @@
 	}
 </style>
 
-<h1>Debug section</h1>
-<p>size: {selected_size}</p>
-<p>file: {selected_toml_file}</p>
-
-{#if layout}
-{#each layout as layer}
-<table>
-	{#each layer as row}
-	<tr>
-		{#each row as col}
-		<td>{col}</td>
+<div class="column">
+	<h1>Debug section</h1>
+	<p>size: {selected_size}</p>
+	<p>file: {selected_toml_file}</p>
+</div>
+<div class="column">
+	{#if layout}
+	{#each layout as layer}
+	<table>
+		{#each layer as row}
+		<tr>
+			{#each row as col}
+			<td>{col.keycode}_{+col.locked}{+col.symmetric}</td>
+			{/each}
+		</tr>	
 		{/each}
-	</tr>	
+	</table>
 	{/each}
-</table>
-{/each}
-{/if}
+	{/if}
+</div>
+
 
 
 <h1>Layout section</h1>
@@ -176,17 +232,43 @@
 <!-- {#if selected_size && selected_num_layers} -->
 {#if layout}
 {#each {length: layout.length} as _, n}
-	<table>	
+	<table>
 		{#each {length: layout[0].length} as _, i}
+		{@const num_cols = layout[0][0].length}
 		<tr>
-			{#each {length: layout[0][0].length} as _, j}
+			<th></th>
+			{#if i == 0}
+				{#each {length: layout[0][0].length} as _, j}
+					<th>{j}</th>
+				{/each}
+			{/if}
+		</tr>
+		<tr>
+			<th>{i}</th>
+			{#each {length: num_cols} as _, j}
 				<td class="key">
-					<select bind:value={layout[n][i][j]}>
+					<select bind:value={layout[n][i][j].keycode}>
 						{#each keycodes as keycode}
 							<option value={keycode}>{keycode}</option>
 						{/each}
 					</select>
-					({i}, {j})
+					<div class="key_flags">
+						<button on:click={() => layout[n][i][j].locked = !layout[n][i][j].locked}>
+							{#if layout[n][i][j].locked}
+							🔒
+							{:else}
+							🔓
+							{/if}
+						</button>
+						<!-- <button on:click={() => layout[n][i][j].symmetric = !layout[n][i][j].symmetric}> -->
+						<button on:click={() => set_symmetric(n, i, j)} disabled={j == (num_cols - 1) / 2}>
+							{#if layout[n][i][j].symmetric}
+							S
+							{:else}
+							A
+							{/if}
+						</button>
+					</div>
 				</td>
 			{/each}
 		</tr>

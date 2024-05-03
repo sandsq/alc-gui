@@ -50,7 +50,6 @@ fn get_all_keycodes() -> Vec<String> {
 		.collect()
 }
 
-
 // define the payload struct
 #[derive(Clone, serde::Serialize)]
 struct Payload {
