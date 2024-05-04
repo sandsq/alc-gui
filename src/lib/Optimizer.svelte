@@ -68,25 +68,25 @@
 
 	/**@param {string} layout_string*/
 	function fill_layout_from_string(layout_string) {
-		resize_layout()
+		// resize_layout()
 		let layers = layout_string.split(/___(.*)___/g)
 		layers = layers.filter((x) => x != "" && !x.includes("Layer"))
 		if (layout.length != layers.length) {
-			alert(`the number of layers in the layout (${layout.length}) does not match the number of layers found from the config (${layers.length}) this is probably a developer error due to parsing the config incorrectly`)
+			alert(`the number of layers in the layout (${layout.length}) does not match the number of layers found from the config (${layers.length}); this is probably a developer error due to parsing the config incorrectly`)
 			return;
 		}
 		for (let n = 0; n < layers.length; n++) {
 			let layer = layers[n]
 			let rows = split_layer_to_rows(layer)
 			if (layout[0].length != rows.length) {
-				alert(`the number of rows in the layout (${layout[0].length}) does not match the number of rows found from the config (${rows.length}: ${rows}) this is probably a developer error due to parsing the config incorrectly`)
+				alert(`the number of rows in the layout (${layout[0].length}) does not match the number of rows found from the config (${rows.length}: ${rows}); this is probably a developer error due to parsing the config incorrectly`)
 				return;
 			}
 			for (let i = 0; i < rows.length; i++) {
 				let row = rows[i]
 				let cols = split_row_to_columns(row)
 				if (layout[0][0].length != cols.length) {
-					alert(`the number of columns in the layout (${layout[0][0].length}) does not match the number of columns found from the config (${cols.length}: ${cols}) this is probably a developer error due to parsing the config incorrectly`)
+					alert(`the number of columns in the layout (${layout[0][0].length}) does not match the number of columns found from the config (${cols.length}: ${cols}); this is probably a developer error due to parsing the config incorrectly`)
 					return;
 				}
 				for (let j = 0; j < cols.length; j++) {
@@ -132,19 +132,7 @@
 	* @property {boolean} locked
 	* @property {boolean} symmetric
 	*/
-	/**
-	 * @param {string} keycode
-	 * @param {boolean} locked
-	 * @param {boolean} symmetric
-	 * @returns {Key}
-	 */
-	function createKey(keycode, locked, symmetric) {
-		/**@type {Key}*/
-		const key = {
-			keycode, locked, symmetric
-		};
-		return key;
-	}
+	
 	/** @type {Key[][][]}*/
 	let layout;
 
@@ -164,21 +152,7 @@
 		selected_keycode = keycodes[0]
 	}
 
-	function resize_layout() {
-		if (selected_num_layers && selected_size) {	
-			layout = [];
-			for (let n = 0; n < selected_num_layers; n++) {
-				layout.push([]);
-				for (let i = 0; i < selected_size[0]; i++) {
-					layout[n].push([]);
-					for (let j = 0; j < selected_size[1]; j++) {
-						let k = createKey("NO", false, false);
-						layout[n][i].push(k);
-					}
-				}
-			}
-		}
-	}
+
 	
 	/**
 	 * @param {[number, number, number]} pos
@@ -260,7 +234,7 @@
 	onMount(() => {
 		get_sizes()
 		get_keycodes()
-		resize_layout()
+		
 		// start_config_error_listener()
 	})
 </script>
@@ -318,14 +292,14 @@
 	or
 	choose layout size:
 	{#await get_sizes then}
-	<select bind:value={selected_size} on:change={resize_layout}> 
+	<select bind:value={selected_size}> 
 		{#each layout_sizes as size}
 			<option value={size}>{size[0]} x {size[1]}</option>
 		{/each}
 	</select>
 	{/await}
 	and number of layers:
-	<select bind:value={selected_num_layers} on:change={resize_layout}>
+	<select bind:value={selected_num_layers}>
 		{#each {length: max_layers} as _, i}
 			<option value={i+1}>{i+1}</option>
 		{/each}
@@ -341,8 +315,9 @@
 </div>
 
 
-<svelte:component this={tab_components[active_tab]} {...{layout: layout, keycodes: keycodes}} />
-	
+<!-- <svelte:component this={tab_components[active_tab]} {...{layout: layout, keycodes: keycodes, num_layers: selected_num_layers, layout_size: selected_size}} /> -->
+<svelte:component this={tab_components[active_tab]} bind:layout={layout} bind:keycodes={keycodes} bind:num_layers={selected_num_layers} bind:layout_size={selected_size} />
+
 <!-- <Layout /> -->
 
 

@@ -22,45 +22,7 @@
 	function set_symmetric() {
 		notify_symmetric(current_key_location)
 	}
-	/**@type {string}*/
-	let symmetric_flag_color;
-	$: {
-		if (symmetric) {
-			symmetric_flag_color = "#99ebc2";
-		} else {
-			symmetric_flag_color = "";
-		}
-	}
-
-	function set_locked() {
-		notify_locked(current_key_location)
-	}
-	/**@type {string}*/
-	let locked_color;
-	$: {
-		if (locked) {
-			locked_color = "#b37575";
-		} else {
-			locked_color = "";
-		}
-	}
-
-	/**@type {string}*/
-	let no_keycode_color;
-	/**@type {string}*/
-	let no_keycode_border_color;
-	let keycode_fade = "";
-	$: {
-		if (keycode == "NO") {
-			no_keycode_color = "#cbb899"; // "#D7C7AC";
-			no_keycode_border_color = "#e8dcd0";
-			keycode_fade = "keycode_div"
-		} else {
-			no_keycode_color = "";
-			no_keycode_border_color = "";
-			keycode_fade = ""
-		}
-	}
+	
 
 	let keycode_select_class = "keycode_select_nonfaded"
 
@@ -136,40 +98,3 @@
 	}
 </style>
 
-<div class="key" style="background-color: {no_keycode_color}; border-color: {no_keycode_border_color};">
-
-	<div class="{keycode_fade}"></div>
-	<select bind:value={keycode} on:change={set_keycode_from_select}>
-		{#each keycodes as keycode}
-			<option value={keycode}>{keycode == "NO" ? "" : keycode}</option>
-		{/each}
-	</select>
-	
-	
-	<!-- <div class="keycode_div">
-	<Select {items} bind:value={keycode_item} clearable={false} showChevron={true} class="{keycode_select_class} keycode_class" />
-	</div> -->
-
-	<div class="key_flags">
-		<button on:click={set_locked} style="background-color: {locked_color};">
-			{#if locked}
-			🔒
-			{:else}
-			🔓
-			{/if}
-		</button>
-		
-		<button on:click={set_symmetric} disabled={current_key_location[2] == (num_cols - 1) / 2} style="background-color: {symmetric_flag_color}; font-size: 12px;">
-			{#if symmetric}
-			o|o
-			{:else if current_key_location[2] == (num_cols - 1) / 2}
-			|
-			{:else if current_key_location[2] > (num_cols - 1) / 2}
-			|o
-			{:else}
-			o|
-			{/if}
-		</button>
-		
-	</div>
-</div>
