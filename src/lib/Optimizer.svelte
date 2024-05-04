@@ -7,6 +7,7 @@
 	import { emit, listen, once } from '@tauri-apps/api/event'
 	import { setContext } from "svelte";
 	import Layout from "./Layout.svelte";
+	import { ask } from '@tauri-apps/api/dialog';
 
 	/**@type {keyof TabComponentMap}*/
 	let active_tab = "tab1";
@@ -90,7 +91,9 @@
 				}
 				for (let j = 0; j < cols.length; j++) {
 					let col = cols[j]
-					console.log(`${col}`)
+					if (layout[n][i][j].keycode.includes("LS")) {
+						continue
+					}
 					if (col[0] == "_") {
 						layout[n][i][j].keycode = "NO"
 						// gui tracks whether key is locked, backend tracks wether key is moveable (i.e., unlocked), so use extra negate
@@ -100,7 +103,11 @@
 						let s = col.split("_")
 						let k = s[0]
 						let flags = s[1]
-						k = k.includes("LS") ? "LS" : k
+						if (k.includes("LS")) {
+							let target_layer = parseInt(k[2])
+							layout[target_layer][i][j].keycode = "LS"
+							k = "LS"
+						}
 						layout[n][i][j].keycode = k 
 						layout[n][i][j].locked = !!!parseInt(flags[0])
 						layout[n][i][j].symmetric = !!parseInt(flags[1])
@@ -203,14 +210,52 @@
 	/**
 	 * @param {[number, number, number]} pos
 	 * @param {string} k
+	 * @param {boolean} from_select
 	*/
-	function set_keycode(pos, k) {
+	function set_keycode(pos, k, from_select) {
 		let layer = pos[0]
 		let row = pos[1]
 		let col = pos[2]
-		layout[layer][row][col].keycode = k
+		let current_keycode = layout[layer][row][col].keycode
+		console.log(`current keycode at start ${current_keycode}`)
+		// if LS is being replaced, replace its corresponding place as well
+		if (layout[layer][row][col].keycode == "LS") {
+			for (let n = 0; n < layout.length; n++) {
+				if (layer == n) {
+					continue
+				}
+				if (layout[n][row][col].keycode == "LS") {
+					layout[n][row][col].keycode = "NO"
+				}
+			}
+			layout[layer][row][col].keycode = k
+		}
+		// if the key is being replaced with LS, specify the corresponding layer
+		if (k == "LS" && from_select) {
+			let corresponding_layer_string = prompt(`specify corresponding layer (${0}-${layout.length - 1}):`)
+			if (corresponding_layer_string && Number.isInteger(parseInt(corresponding_layer_string))) {
+				let corresponding_layer = parseInt(corresponding_layer_string)
+				if (layout[corresponding_layer][row][col].locked) {
+					alert("can't assign corresponding layer switch to this position as it is occupied by a locked key")
+
+					console.log(`current keycode ${current_keycode}`)
+					layout[layer][row][col].keycode = "NO"
+				} else if (layout[corresponding_layer][row][col].symmetric) {
+					alert("can't assign corresponding layer switch to this position as it is occupied by a symmetric key")
+					layout[layer][row][col].keycode = current_keycode
+				} else {
+					layout[corresponding_layer][row][col].keycode = "LS"
+					layout[layer][row][col].keycode = k
+				}
+			}
+		}
+		
 	}
 	setContext("keycode_position", set_keycode)
+
+
+	/**@param {number} delay*/
+	const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 	onMount(() => {
 		get_sizes()
@@ -235,6 +280,9 @@
 	}
 	h1 {
 		font-size: 32px;
+	}
+	prompt {
+		background: #ff0000;
 	}
 	// select, button {
 	// 	font-size: 16px;
@@ -291,7 +339,8 @@
  	<button on:click={() => active_tab = 'tab1'}>Layout</button>
 	<!-- <button on:click={() => active_tab = 'tab2'}>Effort layer</button> -->
 </div>
-	  
+
+
 <svelte:component this={tab_components[active_tab]} {...{layout: layout, keycodes: keycodes}} />
 	
 <!-- <Layout /> -->

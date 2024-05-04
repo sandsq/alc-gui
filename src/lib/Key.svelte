@@ -72,9 +72,11 @@
 		// } else {
 		// 	keycode_select_class = "keycode_select_nonfaded"
 		// }
-		notify_keycode(current_key_location, keycode)
+		notify_keycode(current_key_location, keycode, false)
 	}
-	
+	function set_keycode_from_select() {
+		notify_keycode(current_key_location, keycode, true)
+	}
 
 	onMount(() => {
 		
@@ -119,25 +121,25 @@
 		font-size: 18px;
 		font-weight: bold;
 		border: 2px solid $border;
-		// background-color: $background1;
-		background-color: #ff0000 !important;
+		border-radius: 8px;
 	}
 	select:hover {
 		cursor: pointer;
 	}
 	.keycode_div {
 		position: absolute;
-		height: 30px;
-		width: 64px;
+		height: 32px;
+		width: 66px;
 		background: rgba(0, 0, 0, 0.2);
 		pointer-events: none;
+		border-radius: 8px;
 	}
 </style>
 
 <div class="key" style="background-color: {no_keycode_color}; border-color: {no_keycode_border_color};">
 
 	<div class="{keycode_fade}"></div>
-	<select bind:value={keycode}>
+	<select bind:value={keycode} on:change={set_keycode_from_select}>
 		{#each keycodes as keycode}
 			<option value={keycode}>{keycode == "NO" ? "" : keycode}</option>
 		{/each}
