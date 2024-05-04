@@ -22,3 +22,6 @@ export function split_row_to_columns(str) {
 	cols = cols.filter((x) => x != "")
 	return cols
 }
+
+/**@param {number} delay*/
+export const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))

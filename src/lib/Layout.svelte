@@ -1,4 +1,5 @@
 <script>
+	import { split_layer_to_rows, split_row_to_columns } from "./utils.js"
 	import { getContext } from "svelte"
 	import { onMount } from 'svelte'
 	/**
@@ -15,6 +16,7 @@
 	/**@type {Key[][][]}*/
 	export let layout;
 	export let keycodes;
+	export let layout_string;
 
 	/**
 	 * @param {string} keycode
@@ -45,6 +47,119 @@
 			}
 		}
 	}
+	$: num_layers, resize_layout()
+	$: layout_size, resize_layout()
+
+	/**@param {string} layout_string*/
+	function fill_layout_from_string(layout_string) {
+		resize_layout()
+		let layers = layout_string.split(/___(.*)___/g)
+		layers = layers.filter((x) => x != "" && !x.includes("Layer"))
+		if (layout.length != layers.length) {
+			alert(`the number of layers in the layout (${layout.length}) does not match the number of layers found from the config (${layers.length}); this is probably a developer error due to parsing the config incorrectly`)
+			console.log(layers)
+			return;
+		}
+		for (let n = 0; n < layers.length; n++) {
+			let layer = layers[n]
+			let rows = split_layer_to_rows(layer)
+			if (layout[0].length != rows.length) {
+				alert(`the number of rows in the layout (${layout[0].length}) does not match the number of rows found from the config (${rows.length}: ${rows}); this is probably a developer error due to parsing the config incorrectly`)
+				return;
+			}
+			for (let i = 0; i < rows.length; i++) {
+				let row = rows[i]
+				let cols = split_row_to_columns(row)
+				if (layout[0][0].length != cols.length) {
+					alert(`the number of columns in the layout (${layout[0][0].length}) does not match the number of columns found from the config (${cols.length}: ${cols}); this is probably a developer error due to parsing the config incorrectly`)
+					return;
+				}
+				for (let j = 0; j < cols.length; j++) {
+					let col = cols[j]
+					if (layout[n][i][j].keycode.includes("LS")) {
+						continue
+					}
+					if (col[0] == "_") {
+						layout[n][i][j].keycode = "NO"
+						// gui tracks whether key is locked, backend tracks wether key is moveable (i.e., unlocked), so use extra negate
+						layout[n][i][j].locked = !!!parseInt(col[2])
+						layout[n][i][j].symmetric = !!parseInt(col[3])
+					} else {
+						let s = col.split("_")
+						let k = s[0]
+						let flags = s[1]
+						if (k.includes("LS")) {
+							let target_layer = parseInt(k[2])
+							layout[target_layer][i][j].keycode = "LS"
+							k = "LS"
+						}
+						layout[n][i][j].keycode = k 
+						layout[n][i][j].locked = !!!parseInt(flags[0])
+						layout[n][i][j].symmetric = !!parseInt(flags[1])
+					}
+				}
+			}
+		}
+	}
+	$: {
+		if (layout_string) {
+			fill_layout_from_string(layout_string)
+		}
+		
+	}
+
+	let previous_keycode = "";
+	/**
+	 * @param {number} n
+	 * @param {number} i
+	 * @param {number} j
+	*/
+	function set_previous_keycode(n, i, j) {
+		previous_keycode = layout[n][i][j].keycode
+	}
+
+	/**
+	 * @param {[number, number, number]} pos
+	 * @param {boolean} from_select
+	*/
+	function set_keycode(pos, from_select) {
+		let layer = pos[0]
+		let row = pos[1]
+		let col = pos[2]
+		let new_keycode = layout[layer][row][col].keycode
+		console.log(`current keycode at start ${previous_keycode}`)
+		console.log(`new keycode ${new_keycode}`)
+		// if LS is being replaced, replace its corresponding place as well
+		if (previous_keycode == "LS") {
+			for (let n = 0; n < layout.length; n++) {
+				if (layer == n) {
+					continue
+				}
+				if (layout[n][row][col].keycode == "LS") {
+					layout[n][row][col].keycode = "NO"
+				}
+			}
+		}
+		// if the key is being replaced with LS, specify the corresponding layer
+		if (new_keycode == "LS" && from_select) {
+			let corresponding_layer_string = prompt(`specify corresponding layer (${0}-${layout.length - 1}):`)
+			if (corresponding_layer_string && Number.isInteger(parseInt(corresponding_layer_string))) {
+				let corresponding_layer = parseInt(corresponding_layer_string)
+				if (layout[corresponding_layer][row][col].locked) {
+					alert("can't assign corresponding layer switch to this position as it is occupied by a locked key")
+					layout[layer][row][col].keycode = previous_keycode
+				} else if (layout[corresponding_layer][row][col].symmetric) {
+					alert("can't assign corresponding layer switch to this position as it is occupied by a symmetric key")
+					layout[layer][row][col].keycode = previous_keycode
+				} else {
+					layout[corresponding_layer][row][col].keycode = "LS"
+					// layout[layer][row][col].keycode = previous_keycode
+				}
+			}
+		}
+		
+	}
+	
 
 	/**
 	 * @param {number} n
@@ -93,7 +208,7 @@
 						{#if layout[n][i][j].keycode == "NO"}
 						<div class="keycode_fade"></div>
 						{/if}
-						<select bind:value={layout[n][i][j].keycode}>
+						<select on:change={() => set_previous_keycode(n, i, j)} bind:value={layout[n][i][j].keycode} on:change={() => set_keycode([n, i, j], true)}>
 							{#each keycodes as keycode}
 								<option value={keycode}>{keycode == "NO" ? "" : keycode}</option>
 							{/each}
