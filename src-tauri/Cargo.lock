@@ -34,6 +34,7 @@ dependencies = [
  "clap",
  "delegate",
  "divan",
+ "erased-serde 0.4.4",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "rayon",
@@ -880,6 +881,15 @@ name = "erased-serde"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c138974f9d5e7fe373eb04df7cae98833802ae4b11c24ac7039a21d5af4b26c"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "erased-serde"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b73807008a3c7f171cc40312f37d95ef0396e048b5848d775f54b1a4dd4a0d3"
 dependencies = [
  "serde",
 ]
@@ -2855,7 +2865,7 @@ version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8bb939ce88a43ea4e9d012f2f6b4cc789deb2db9d47bad697952a85d6978662c"
 dependencies = [
- "erased-serde",
+ "erased-serde 0.3.31",
  "proc-macro2",
  "quote",
  "struct_iterable_internal",

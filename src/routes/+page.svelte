@@ -1,5 +1,5 @@
 <script>
-	import Layout from '../lib/Layout.svelte'
+	import Optimizer from '../lib/Optimizer.svelte';
 </script>
 <!-- <style lang="scss">
 	@use "../styles/colors.scss" as *;
@@ -13,4 +13,4 @@
 		color: $text;
 	}
 </style> -->
-<Layout />
+<Optimizer />

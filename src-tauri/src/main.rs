@@ -64,6 +64,7 @@ impl Payload {
 
 #[tauri::command]
 fn process_config(app_handle: tauri::AppHandle, config_file: String) -> Result<LayoutOptimizerTomlAdapter, AlcError> {
+// Result<LayoutOptimizerTomlAdapter, AlcError> {
 	println!("received {} as the config file", config_file);
 	let lo = LayoutOptimizerTomlAdapter::try_from_toml_file(config_file.as_str())?;
 	// {
