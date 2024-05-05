@@ -91,10 +91,12 @@
 						if (k.includes("LS")) {
 							let target_layer = parseInt(k[2])
 							layout[target_layer][i][j].keycode = "LS"
+							layout[target_layer][i][j].locked = !!!parseInt(flags[0])
+							layout[target_layer][i][j].symmetric = !!parseInt(flags[1])
 							k = "LS"
 						}
 						layout[n][i][j].keycode = k 
-						layout[n][i][j].locked = !!!parseInt(flags[0])
+						layout[n][i][j].locked = !parseInt(flags[0])
 						layout[n][i][j].symmetric = !!parseInt(flags[1])
 					}
 				}
@@ -189,6 +191,7 @@
 
 {#if layout}
 {#each {length: layout.length} as _, n}
+	<h2>Layer {n}</h2>
 	<table>
 		{#each {length: layout[0].length} as _, i}
 		{@const num_cols = layout[0][0].length}
@@ -263,8 +266,8 @@
 	}
 	.key {
 		background-color: $key_background1;
-		// height: 32px;
-		// width: 32px;
+		width: $key_dimension;
+		height: $key_dimension;
 		border: $key_outline solid 3px;
 		border-radius: 5px;
 		font-size: 16px;
@@ -273,6 +276,7 @@
 	}
 	.key_flags {
 		padding: 0px;
+		padding-top: 0.2em;
 	}
 	.key_flags button {
 		padding: 0px;
