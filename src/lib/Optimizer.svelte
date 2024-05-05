@@ -89,6 +89,18 @@
 	let active_tab_color = "#b7a78C"
 	let active_tab_highlight = "#B85F28"
 
+	/**
+	* @typedef {Object} Payload
+	* @property {string} message
+	* @property {boolean} pass
+	*/
+	let test_path = "/home/sand/Downloads/test.txt"
+	async function write_toml() {
+		/**@type Payload*/
+		let p = { message: "hello", pass: true }
+		await invoke('write_toml', {filename: test_path, p: p})
+	}
+
 	onMount(() => {
 		get_sizes()
 		get_keycodes()
@@ -130,6 +142,9 @@
 	{/if}
 </div>
 </div>
+
+<input type="text" bind:value={test_path} />
+<button on:click={write_toml}>Write</button>
 
 <h1>Layout section</h1>
 <div>

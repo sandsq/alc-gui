@@ -6,7 +6,7 @@ function isDigit(str) {
 }
 
 /**@param {string} str */
-export function split_layer_to_rows(str) {
+export function split_layer_to_rows(str, is_effort_layer=false) {
 	let rows = str.split("\n")
 	rows = rows.filter((x) => x.trim().length > 0)
 	// let out_rows = []
