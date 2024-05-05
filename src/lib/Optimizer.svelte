@@ -98,7 +98,12 @@
 	async function write_toml() {
 		/**@type Payload*/
 		let p = { message: "hello", pass: true }
-		await invoke('write_toml', {filename: test_path, p: p})
+		try {
+			await invoke('write_toml', {filename: test_path})
+		} catch (e) {
+			alert(e)
+		}
+		
 	}
 
 	onMount(() => {
