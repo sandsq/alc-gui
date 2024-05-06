@@ -45,13 +45,14 @@
 		if (opened_file !== null) {
 			invoke('process_config', {configFile: opened_file})
 				.then((res) => {
-					console.log(`successfully loaded ${opened_file}`)
 					selected_toml_file = opened_file
 					selected_size = [res.layout_info.num_rows, res.layout_info.num_cols]
+					is_size_from_config = true
 					selected_num_layers = (res.layout_info.layout.match(/Layer/g) || []).length;
 					layout_string = res.layout_info.layout;
 					effort_layer_string = res.layout_info.effort_layer
 					phalanx_layer_string = res.layout_info.phalanx_layer
+					console.log(`successfully loaded ${opened_file}`)
 				})
 				.catch((e) => {
 					alert(e);
@@ -65,7 +66,9 @@
 	/** @type {[number, number][]}*/
 	let layout_sizes = [];
 	/** @type {[number, number]}*/
-	let selected_size = [2, 4];
+	let selected_size; //= [2, 4];
+	/** @type {boolean}*/
+	let is_size_from_config = false
 	/** @type {number}*/
 	let selected_num_layers = 3;
 	let max_layers = 15;
@@ -122,30 +125,32 @@
 	/**@type {string}*/
 	let phalanx_layer_string; 
 
-	/**@param {string} test*/
-	async function create_blank_layers(test) {
-		console.log(test)
-		await invoke('create_blank_layers', {r: selected_size[0], c: selected_size[1]}).then((res) => {
-			effort_layer_string = res[0]
-			phalanx_layer_string = res[1]
-		}).catch((e) => {
-			alert(e)
-			console.error(e)
-		})
+	
+	/**
+	 * @param {[number, number]} size
+	 * @param {string} test*/
+	async function create_blank_layers(size, test) {
+		if (size && !is_size_from_config) {
+			console.log(test)
+			await invoke('create_blank_layers', {r: size[0], c: size[1], loc: test}).then((res) => {
+				effort_layer_string = res[0]
+				phalanx_layer_string = res[1]
+			}).catch((e) => {
+				alert(e)
+				console.error(e)
+			})
+		}
 	}
+	$: selected_size, create_blank_layers(selected_size, "from $: selected_size, ..."), is_size_from_config = false
+	// $: {
+	// 	if (selected_toml_file) {
 
-	$: {
-		selected_size, create_blank_layers("from $: selected_size")
-		// invoke('create_blank_layers', {r: selected_size[0], c: selected_size[1]})
-		// .then((res) => {
-		// 	effort_layer_string = res[0]
-		// 	phalanx_layer_string = res[1]
-		// })
-		// .catch((e) => {
-		// 	alert(e)
-		// 	console.error(e)
-		// })
-	}
+	// 	} else {
+	// 		create_blank_layers(selected_size, "from $: selected_size")
+	// 	}
+	// }
+	// $: effort_layer_string, console.log(`new efforts ${effort_layer_string}`)
+	// $: phalanx_layer_string
 
 	onMount(() => {
 		get_sizes().then((res) => {
@@ -159,7 +164,7 @@
 		// create_blank_layers()
 		// appWindow.once("ready", async () => {
 		// 	await create_blank_layers("app window ready")
-		// 	selected_size = [4, 10]
+			// selected_size = layout_sizes[0]
 		// })
 	})
 </script>
@@ -239,7 +244,7 @@
 <br>
 <br>
 
-<!-- {#if effort_layer_string && phalanx_layer_string} -->
+{#if selected_size}
 <div class="tabs">
 	<button on:click={() => active_tab = 'tab1'} class="{active_tab == "tab1" ? "active_tab" : "inactive_tab"} tab">Layout</button>
 	<button on:click={() => active_tab = 'tab2'} class="{active_tab == "tab2" ? "active_tab" : "inactive_tab"} tab">Effort layer</button>
@@ -256,7 +261,7 @@
 		<svelte:component this={tab_components["tab3"]} bind:phalanx_layer_string={phalanx_layer_string} bind:phalanx_layer={phalanx_layer} bind:layout_size={selected_size} />
 	</div>
 </div>
-<!-- {/if} -->
+{/if}
 
 <style lang="scss">
 	@use "../styles/colors.scss" as *;

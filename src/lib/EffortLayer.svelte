@@ -43,18 +43,17 @@
 		}
 		// console.log(`filled effort layer with ${effort_string}`)
 		// console.log(`effort layer ${effort_layer}`)
-		
 	}
+	
 	$: {
 		if (effort_layer_string) {
 			fill_effort_layer_from_string(effort_layer_string)
 		}
-		
 	}
 
-	onMount(() => {
-		resize_effort_layer()
-	})
+	// onMount(() => {
+	// 	resize_effort_layer()
+	// })
 </script>
 
 {#if effort_layer}
