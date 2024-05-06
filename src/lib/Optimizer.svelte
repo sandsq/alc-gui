@@ -122,7 +122,9 @@
 	/**@type {string}*/
 	let phalanx_layer_string; 
 
-	async function create_blank_layers() {
+	/**@param {string} test*/
+	async function create_blank_layers(test) {
+		console.log(test)
 		await invoke('create_blank_layers', {r: selected_size[0], c: selected_size[1]}).then((res) => {
 			effort_layer_string = res[0]
 			phalanx_layer_string = res[1]
@@ -133,7 +135,7 @@
 	}
 
 	$: {
-		selected_size, create_blank_layers()
+		selected_size, create_blank_layers("from $: selected_size")
 		// invoke('create_blank_layers', {r: selected_size[0], c: selected_size[1]})
 		// .then((res) => {
 		// 	effort_layer_string = res[0]
@@ -146,14 +148,19 @@
 	}
 
 	onMount(() => {
-		get_sizes()
-		get_keycodes()
-		appWindow.once("ready", async () => {
-			await create_blank_layers().then((res) => {
-				effort_layer = effort_layer
-				phalanx_layer = phalanx_layer
-			})
+		get_sizes().then((res) => {
+			// if I do this assignment, then the effort layer and hand assignment don't update
+			selected_size = layout_sizes[0]
 		})
+		
+		get_keycodes()
+
+		// console.log(`effort layer str ${effort_layer_string} phalanx layer str ${phalanx_layer_string}`)
+		// create_blank_layers()
+		// appWindow.once("ready", async () => {
+		// 	await create_blank_layers("app window ready")
+		// 	selected_size = [4, 10]
+		// })
 	})
 </script>
 

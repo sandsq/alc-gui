@@ -41,8 +41,8 @@
 				effort_layer[i][j] = parseFloat(col)
 			}
 		}
-		console.log(`filled effort layer with ${effort_string}`)
-		console.log(`effort layer ${effort_layer}`)
+		// console.log(`filled effort layer with ${effort_string}`)
+		// console.log(`effort layer ${effort_layer}`)
 		
 	}
 	$: {
