@@ -4,7 +4,8 @@
 use std::fs;
 
 use strum::IntoEnumIterator;
-use alc::{alc_error::AlcError, keyboard::layout_presets::{get_all_layout_size_presets, get_size_variant}, optimizer::{config::LayoutOptimizerTomlAdapter, optimize_from_toml, LayoutOptimizer}, text_processor::keycode::Keycode};
+use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout::Layout, layout_presets::{get_all_layout_size_presets, get_size_variant}}, optimizer::{config::LayoutOptimizerTomlAdapter, optimize_from_toml, LayoutOptimizer}, text_processor::keycode::Keycode};
+use alc::keyboard::layout_presets::LayoutSizePresets::*;
 use tauri::Manager;
 
 fn main() {
@@ -25,7 +26,8 @@ fn main() {
 		get_layout_presets,
 		get_all_keycodes,
 		process_config,
-		write_toml,])
+		write_toml,
+		create_blank_layers,])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -94,6 +96,27 @@ fn process_config(app_handle: tauri::AppHandle, config_file: String) -> Result<L
 	// 	Err(e) => println!("{}", e),
 	// }
 	Ok(lo)
+}
+
+#[tauri::command]
+fn create_blank_layers(r: usize, c: usize) -> Result<(String, String), AlcError> {
+	println!("received request to get blank effort and phalanx layers");
+	let size_variant = get_size_variant((r, c))?;
+	let (effort_layer, phalanx_layer) = match size_variant {
+		TwoByFour => {
+			(format!("{}", Layer::<2, 4, f64>::default()), format!("{}", Layer::<2, 4, PhalanxKey>::default()))
+		}, 
+		FourByTen => {
+			(format!("{}", Layer::<4, 10, f64>::default()), format!("{}", Layer::<4, 10, PhalanxKey>::default()))
+		},
+		FourByTwelve => {
+			(format!("{}", Layer::<4, 12, f64>::default()), format!("{}", Layer::<4, 12, PhalanxKey>::default()))
+		}
+		FiveByFifteen => {
+			(format!("{}", Layer::<5, 15, f64>::default()), format!("{}", Layer::<5, 15, PhalanxKey>::default()))
+		}
+	};
+	Ok((effort_layer, phalanx_layer))
 }
 
 #[tauri::command]

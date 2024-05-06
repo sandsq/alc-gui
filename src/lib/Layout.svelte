@@ -47,8 +47,31 @@
 			}
 		}
 	}
-	$: num_layers, resize_layout()
+	function resize_num_layers() {
+		if (num_layers) {
+			/**@type {Key[][][]}*/
+			let output = []
+			for (let n = 0; n < Math.min(layout.length, num_layers); n++) {
+				output.push(layout[n])
+			}
+			while (output.length < num_layers) {
+				/**@type {Key[][]}*/
+				let layer = []
+				for (let i = 0; i < layout_size[0]; i++) {
+					layer.push([]);
+					for (let j = 0; j < layout_size[1]; j++) {
+						let k = createKey("NO", false, false);
+						layer[i].push(k);
+					}
+				}
+				output.push(layer)
+			}
+			layout = output
+		}
+	}
 	$: layout_size, resize_layout()
+	$: num_layers, resize_num_layers()
+
 
 	/**@param {string} layout_string*/
 	function fill_layout_from_string(layout_string) {
@@ -180,9 +203,6 @@
 	let locked_color = "#b37575"
 	let symmetric_color = "#99ebc2"
 
-	let no_keycode_color = "#cbb899";
-	let no_keycode_border_color = "#e8dcd0";
-
 	onMount(() => {
 		resize_layout()
 	})
@@ -207,39 +227,40 @@
 			<th>{i}&nbsp;</th>
 			{#each {length: num_cols} as _, j}
 				<td>
-					<div class="key" style="background-color: {layout[n][i][j].keycode == "NO" ? no_keycode_color: ""}; border-color: {layout[n][i][j].keycode == "NO" ? no_keycode_border_color: ""};">
+					<div class="keyoffset key {layout[n][i][j].keycode == "NO" ? "no_keycode" : "has_keycode"}">
 						{#if layout[n][i][j].keycode == "NO"}
-						<div class="keycode_fade"></div>
+							<div class="keycode_fade"></div>
 						{/if}
+
 						<select on:change={() => set_previous_keycode(n, i, j)} bind:value={layout[n][i][j].keycode} on:change={() => set_keycode([n, i, j], true)}>
 							{#each keycodes as keycode}
 								<option value={keycode}>{keycode == "NO" ? "" : keycode}</option>
 							{/each}
 						</select>
 						
-						<div class="key_flags">
-							<button on:click={() => layout[n][i][j].locked = !layout[n][i][j].locked} style="background-color: {layout[n][i][j].locked ? locked_color : ""};">
-								{#if layout[n][i][j].locked}
-								🔒
-								{:else}
-								🔓
-								{/if}
-							</button>
-							
-							<button on:click={() => set_corresponding_symmetries(n, i, j)} disabled={j == (num_cols - 1) / 2} style="font-size: 12px; background-color: {layout[n][i][j].symmetric ? symmetric_color : ""}">
-								{#if layout[n][i][j].symmetric}
-								o|o
-								{:else if j == (num_cols - 1) / 2}
-								|
-								{:else if j > (num_cols - 1) / 2}
-								|o
-								{:else}
-								o|
-								{/if}
-							</button>
-							
+							<span class="key_flag {layout[n][i][j].locked ? "locked" : "unlocked"}">
+								<button on:click={() => layout[n][i][j].locked = !layout[n][i][j].locked}>
+									{#if layout[n][i][j].locked}
+									🔒
+									{:else}
+									🔓
+									{/if}
+								</button>
+							</span>
+							<span class="key_flag {layout[n][i][j].symmetric ? "symmetric" : "asymmetric"}">
+								<button on:click={() => set_corresponding_symmetries(n, i, j)} disabled={j == (num_cols - 1) / 2}>
+									{#if layout[n][i][j].symmetric}
+									o|o
+									{:else if j == (num_cols - 1) / 2}
+									|
+									{:else if j > (num_cols - 1) / 2}
+									|o
+									{:else}
+									o|
+									{/if}
+								</button>
+							</span>
 						</div>
-					</div>
 
 
 				</td>
@@ -258,39 +279,71 @@
 		color: $text;
 	}
 	table {
-		border-spacing: 2px;
+		border-spacing: 5px;
 		margin-bottom: 20px;
 	}
 	.column_indexes {
 		padding-bottom: 5px;
 	}
 	.key {
-		background-color: $key_background1;
+		margin: 0 auto;
 		width: $key_dimension;
 		height: $key_dimension;
-		border: $key_outline solid 3px;
 		border-radius: 5px;
 		font-size: 16px;
 		text-align: center;
-		padding: 5px;
+		padding: $key_padding;
+		box-shadow: 5px 5px $blue_dark2;
 	}
-	.key_flags {
-		padding: 0px;
-		padding-top: 0.2em;
+	.keyoffset {
+		padding-right: $key_padding + 2px;
 	}
-	.key_flags button {
-		padding: 0px;
-		font-size: 16px;
+	.no_keycode {
+		background-color: $background3; 
+		border: 3px solid $background5;
+	}
+	.has_keycode {
+		background-color: $background1;
+		border: 3px solid $background3;
+		box-shadow: 5px 5px $blue_dark1;
+	}
+	.has_keycode select {
+		background-color: $background;
+		border: 3px solid $purple_light;
+	}
+	.key_flag button {
+		margin-top: 5px;
+		font-size: 12px;
 		width: 24px;
 		height: 24px;
 		font-weight: bold;
 		border: 2px solid $border;
 		border-radius: 4px;
 		background-color: $key_background1;
+		padding: 0px;
 	}
-	.key_flags button:hover {
+	.key_flag button:hover {
 		cursor: pointer;
-		background-color: $background1;
+		background-color: $background;
+	}
+	.locked button {
+		background-color: $yellow_light;
+	}
+	.locked button:hover {
+		background-color: $yellow_light;
+	}
+	.unlocked button {
+		
+	}
+	.symmetric button {
+		background-color: $aqua_light;
+		font-size: 12px;
+	}
+	.symmetric button:hover {
+		background-color: $aqua_light;
+	}
+	.asymmetric button {
+		font-size: 12px;
 	}
 	select {
 		font-size: 18px;

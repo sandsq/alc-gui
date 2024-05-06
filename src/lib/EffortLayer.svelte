@@ -83,15 +83,22 @@
 
 <style lang="scss">
 	@use "../styles/colors.scss" as *;
+	table {
+		border-spacing: 5px;
+		margin-bottom: 20px;
+	}
 	.effort_key input {
 		width: $key_dimension;
 		height: $key_dimension;
+		background: $background0_h;
 		text-align: center;
-		border: rgba(0, 0, 0, 0) solid 3px;
+		border: 3px solid $background2;
 		border-radius: 5px;
 		font-size: 24px;
 		text-align: center;
-		padding: 5px;
+		padding: $key_padding;
+		padding-right: $key_padding + 2px;
+		box-shadow: 5px 5px $blue_light;
 	}
 	.column_indexes {
 		padding-bottom: 5px;

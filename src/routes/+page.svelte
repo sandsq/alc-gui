@@ -9,7 +9,7 @@
 	}
 	:global(body) {
 		margin: 100px;
-		background-color: $background1;
+		background-color: $background;
 		color: $text;
 	}
 </style> -->

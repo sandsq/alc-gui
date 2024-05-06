@@ -77,7 +77,7 @@
 	}
 	.key_flags button:hover {
 		cursor: pointer;
-		background-color: $background1;
+		background-color: $background;
 	}
 	select {
 		font-size: 18px;
