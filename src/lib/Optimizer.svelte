@@ -6,6 +6,9 @@
 	import Layout from "./Layout.svelte";
 	import EffortLayer from "./EffortLayer.svelte";
 	import PhalanxLayer from './PhalanxLayer.svelte';
+	import { appWindow } from '@tauri-apps/api/window'
+
+
 	/**@type {keyof TabComponentMap}*/
 	let active_tab = "tab1";
 	
@@ -26,10 +29,10 @@
 	let selected_toml_file;
 	/**@type {string}*/
 	let layout_string;
-	/**@type {string}*/
-	let effort_layer_string;
-	/**@type {string}*/
-	let phalanx_layer_string;
+	// /**@type {string}*/
+	// let effort_layer_string;
+	// /**@type {string}*/
+	// let phalanx_layer_string;
 
 	async function open_toml() {
 		const opened_file = await open({
@@ -88,7 +91,7 @@
 	
 	async function get_sizes() {
 		layout_sizes = await invoke('get_layout_presets')
-		selected_size = layout_sizes[0]
+		// selected_size = layout_sizes[0]
 	}
 	async function get_keycodes() {
 		keycodes = await invoke('get_all_keycodes')
@@ -106,47 +109,51 @@
 	let test_path = "/home/sand/Downloads/test.txt"
 	async function write_toml() {
 		/**@type Payload*/
-		let p = { message: "hello", pass: true }
+		let p = { message: effort_layer_string, pass: true }
 		try {
-			await invoke('write_toml', {filename: test_path})
+			await invoke('write_toml', {filename: test_path, p: p})
 		} catch (e) {
 			alert(e)
 		}
 	}
 
-	// async function create_blank_layers() {
-	// 	let o = await invoke('create_blank_layers', {r: selected_size[0], c: selected_size[1]})
-	// 	effort_layer_string = o[0]
-	// 	phalanx_layer_string = o[1]
+	/**@type {string}*/
+	let effort_layer_string; 
+	/**@type {string}*/
+	let phalanx_layer_string; 
 
-	// 	await invoke('create_blank_layers', {r: selected_size[0], c: selected_size[1]})
-	// 	.then((res) => {
-	// 		effort_layer_string = res[0]
-	// 		phalanx_layer_string = res[1]
-	// 	})
-	// 	.catch((e) => {
-	// 		alert(e)
-	// 		console.error(e)
-	// 	})
-	// }
-
-	$: {
-		// selected_size, create_blank_layers()
-		invoke('create_blank_layers', {r: selected_size[0], c: selected_size[1]})
-		.then((res) => {
+	async function create_blank_layers() {
+		await invoke('create_blank_layers', {r: selected_size[0], c: selected_size[1]}).then((res) => {
 			effort_layer_string = res[0]
 			phalanx_layer_string = res[1]
-		})
-		.catch((e) => {
+		}).catch((e) => {
 			alert(e)
 			console.error(e)
 		})
 	}
 
+	$: {
+		selected_size, create_blank_layers()
+		// invoke('create_blank_layers', {r: selected_size[0], c: selected_size[1]})
+		// .then((res) => {
+		// 	effort_layer_string = res[0]
+		// 	phalanx_layer_string = res[1]
+		// })
+		// .catch((e) => {
+		// 	alert(e)
+		// 	console.error(e)
+		// })
+	}
+
 	onMount(() => {
 		get_sizes()
 		get_keycodes()
-		// selected_size = [2, 4]
+		appWindow.once("ready", async () => {
+			await create_blank_layers().then((res) => {
+				effort_layer = effort_layer
+				phalanx_layer = phalanx_layer
+			})
+		})
 	})
 </script>
 
@@ -206,13 +213,13 @@
 	<button on:click={open_toml}>Load config</button>
 	or
 	choose layout size:
-	{#await get_sizes then}
+	<!-- {#await get_sizes then} -->
 	<select bind:value={selected_size}>
 		{#each layout_sizes as size}
 			<option value={size}>{size[0]} x {size[1]}</option>
 		{/each}
 	</select>
-	{/await}
+	<!-- {/await} -->
 	and number of layers:
 	<select bind:value={selected_num_layers}>
 		{#each {length: max_layers} as _, i}
@@ -221,13 +228,12 @@
 	</select>
 </div>
 
+
 <br>
 <br>
 
-
+<!-- {#if effort_layer_string && phalanx_layer_string} -->
 <div class="tabs">
- 	<!-- <button on:click={() => active_tab = 'tab1'} style="background: {active_tab == "tab1" ? active_tab_color : ""}; border: 3px solid {active_tab == "tab1" ? active_tab_border : inactive_tab_border}; border-bottom-color: rgba(0, 0, 0, 0);" class="tab">Layout</button>
-	<button on:click={() => active_tab = 'tab2'} style="background: {active_tab == "tab2" ? active_tab_color : ""}; border: 3px solid {active_tab == "tab2" ? active_tab_border : inactive_tab_border}; border-bottom-color: rgba(0, 0, 0, 0);" class="tab">Effort layer</button> -->
 	<button on:click={() => active_tab = 'tab1'} class="{active_tab == "tab1" ? "active_tab" : "inactive_tab"} tab">Layout</button>
 	<button on:click={() => active_tab = 'tab2'} class="{active_tab == "tab2" ? "active_tab" : "inactive_tab"} tab">Effort layer</button>
 	<button on:click={() => active_tab = 'tab3'} class="{active_tab == "tab3" ? "active_tab" : "inactive_tab"} tab">Hand assignment</button>
@@ -243,7 +249,7 @@
 		<svelte:component this={tab_components["tab3"]} bind:phalanx_layer_string={phalanx_layer_string} bind:phalanx_layer={phalanx_layer} bind:layout_size={selected_size} />
 	</div>
 </div>
-
+<!-- {/if} -->
 
 <style lang="scss">
 	@use "../styles/colors.scss" as *;

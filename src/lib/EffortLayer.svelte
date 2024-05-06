@@ -1,6 +1,7 @@
 <script>
 	import { split_layer_to_rows, split_row_to_columns } from "./utils.js"
 	import { onMount } from 'svelte'
+	import { appWindow } from '@tauri-apps/api/window'
 
 	/**@type {number[][]}*/
 	export let effort_layer;
@@ -40,6 +41,8 @@
 				effort_layer[i][j] = parseFloat(col)
 			}
 		}
+		console.log(`filled effort layer with ${effort_string}`)
+		console.log(`effort layer ${effort_layer}`)
 		
 	}
 	$: {
@@ -78,7 +81,6 @@
 	</tr>
 	{/each}
 </table>
-
 {/if}
 
 <style lang="scss">

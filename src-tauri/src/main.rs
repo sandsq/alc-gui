@@ -100,7 +100,6 @@ fn process_config(app_handle: tauri::AppHandle, config_file: String) -> Result<L
 
 #[tauri::command]
 fn create_blank_layers(r: usize, c: usize) -> Result<(String, String), AlcError> {
-	println!("received request to get blank effort and phalanx layers");
 	let size_variant = get_size_variant((r, c))?;
 	let (effort_layer, phalanx_layer) = match size_variant {
 		TwoByFour => {
@@ -116,6 +115,7 @@ fn create_blank_layers(r: usize, c: usize) -> Result<(String, String), AlcError>
 			(format!("{}", Layer::<5, 15, f64>::default()), format!("{}", Layer::<5, 15, PhalanxKey>::default()))
 		}
 	};
+	println!("received request to get blank effort and phalanx layers:\n{} {}", effort_layer, phalanx_layer);
 	Ok((effort_layer, phalanx_layer))
 }
 
