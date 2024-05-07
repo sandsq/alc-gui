@@ -139,6 +139,7 @@ name = "app"
 version = "0.1.0"
 dependencies = [
  "alc",
+ "dirs",
  "serde",
  "serde_json",
  "strum",

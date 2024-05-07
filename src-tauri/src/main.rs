@@ -1,12 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::fs;
+use std::{fs, path::PathBuf};
 
 use strum::IntoEnumIterator;
-use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout::Layout, layout_presets::{get_all_layout_size_presets, get_size_variant}}, optimizer::{config::LayoutOptimizerTomlAdapter, optimize_from_toml, LayoutOptimizer}, text_processor::keycode::Keycode};
+use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout::Layout, layout_presets::{get_all_layout_size_presets, get_size_variant}}, optimizer::{config::{LayoutInfoTomlAdapter, LayoutOptimizerTomlAdapter}, optimize_from_toml, LayoutOptimizer}, text_processor::keycode::Keycode};
 use alc::keyboard::layout_presets::LayoutSizePresets::*;
-use tauri::Manager;
+use tauri::{api::path::config_dir, Manager};
 
 fn main() {
   tauri::Builder::default()
@@ -27,7 +27,8 @@ fn main() {
 		get_all_keycodes,
 		process_config,
 		write_toml,
-		create_blank_layers,])
+		create_blank_layers,
+		get_config_dir,])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -120,8 +121,36 @@ fn create_blank_layers(r: usize, c: usize, loc: String) -> Result<(String, Strin
 }
 
 #[tauri::command]
-fn write_toml(filename: &str, p: Payload) -> Result<(), AlcError> {
-	println!("writing {} with {:?}", filename, p);
-	fs::write(filename, p.message).unwrap_or_else(|_| panic!("unable to write file {}", filename));
+fn write_toml(filename: &str, layout_info: LayoutInfoTomlAdapter, genetic_options: String) -> Result<(), AlcError> {
+	println!("writing {} with {:?}, {:?}", filename, layout_info, genetic_options);
+	let toml = format!("\
+	[layout_info]\n\
+	num_rows = {}\n\
+	num_cols = {}\n\
+	layout = \"\"\"\n\
+	{}\n\
+	\"\"\"\n\
+	effort_layer = \"\"\"\n\
+	{}\n\
+	\"\"\"\n\
+	phalanx_layer = \"\"\"\n\
+	{}\n\
+	\"\"\"\n\
+	[layout_optimizer_config.genetic_options]\n\
+	{}\n\
+	", layout_info.num_rows, layout_info.num_cols, layout_info.layout, layout_info.effort_layer, layout_info.phalanx_layer, genetic_options);
+	fs::write(filename, toml).unwrap_or_else(|_| panic!("unable to write file {}", filename));
 	Ok(())
+}
+
+#[tauri::command]
+fn get_config_dir() -> Result<String, AlcError> {
+	let d = config_dir().unwrap();
+	let mut alc_dir = d.into_os_string();
+	alc_dir.push("/alc/");
+	match fs::create_dir_all(alc_dir.clone()) {
+		Ok(v) => v,
+		Err(_e) => return Err(AlcError::ExpectedDirectoryError(PathBuf::from(alc_dir)))
+	}
+	Ok(alc_dir.into_string().unwrap())
 }
