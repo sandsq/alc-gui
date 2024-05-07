@@ -31,7 +31,8 @@ fn main() {
 		get_config_dir,
 		get_default_genetic_options,
 		get_default_keycode_options,
-		get_default_dataset_options,])
+		get_default_dataset_options,
+		recompute_valid_keycodes,])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -176,6 +177,13 @@ fn get_default_keycode_options() -> (KeycodeOptions, Vec<Keycode>) {
 	valid_keycodes.sort();
 	(KeycodeOptions::default(), valid_keycodes)
 }
+#[tauri::command]
+fn recompute_valid_keycodes(options: KeycodeOptions) -> Vec<Keycode> {
+	let mut valid_keycodes: Vec<Keycode> = generate_default_keycode_set(&options).into_iter().collect();
+	valid_keycodes.sort();
+	valid_keycodes
+}
+
 
 #[tauri::command]
 fn get_default_dataset_options() -> DatasetOptions {

@@ -54,7 +54,8 @@
 	 * @property {boolean} include_misc_symbols_shifted
 	 * @property {string[]} explicit_inclusions
 	*/
-	/**@type {KeycodeOptions}*/
+	// /**@type {KeycodeOptions}*/
+	/**@type {any}*/
 	let keycode_options;
 
 	async function open_toml() {
@@ -294,7 +295,14 @@
 		await invoke("get_default_keycode_options").then((res) => {
 			keycode_options = res[0]
 			valid_keycodes = res[1]
-			
+		}).catch((e) => {
+			alert(e)
+			console.error(e)
+		})
+	}
+	async function recompute_valid_keycodes() {
+		await invoke("recompute_valid_keycodes", {options: keycode_options}).then((res) => {
+			valid_keycodes = res
 		}).catch((e) => {
 			alert(e)
 			console.error(e)
@@ -464,14 +472,14 @@
 
 	{#if keycode_options}
 	<h3>Keycode options</h3>
-	<div style="width: 400px; word-wrap: break-word;"><span>{valid_keycodes}</span></div>
 	{#each Object.entries(keycode_options) as [key, value]}
-		{#if typeof(keycode_options[key]) === "boolean"}
-		{key}: <input type="checkbox" bind:checked={keycode_options[key]} /> <br>
+		{#if key != "explicit_inclusions"}
+			{key}: <input type="checkbox" bind:checked={keycode_options[key]} on:change={recompute_valid_keycodes} /> <br>
 		{:else}
-		<span>{key} = {keycode_options[key]}</span> <br>
+			<span>{key} = {keycode_options[key]}</span> <br>
 		{/if}
 	{/each}
+	<div style="width: 400px; word-wrap: normal;">Keycode list: <span>{valid_keycodes.join(", ")}</span></div>
 	{/if}
 
 	{#if dataset_options}
