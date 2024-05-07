@@ -57,12 +57,14 @@
 	// /**@type {KeycodeOptions}*/
 	/**@type {any}*/
 	let keycode_options;
+	/**@type {any}*/
+	let score_options;
 
 	async function open_toml() {
 		const opened_file = await open({
 			multiple: false,
 			filters: [{
-				name: 'Config',
+				name: 'toml',
 				extensions: ['toml']
 			}]
 		});
@@ -79,8 +81,9 @@
 					num_threads = res.layout_optimizer_config.num_threads
 					genetic_options = res.layout_optimizer_config.genetic_options
 					keycode_options = res.layout_optimizer_config.keycode_options
-					
+					recompute_valid_keycodes()
 					dataset_options = res.layout_optimizer_config.dataset_options
+					score_options = res.layout_optimizer_config.score_options
 					console.log(`successfully loaded ${opened_file}`)
 				})
 				.catch((e) => {
@@ -257,8 +260,12 @@
 				dataset_string += `${prop} = ${val}\n`
 			}
 		}
+		let score_string = ""
+		for (let [prop, val] of Object.entries(score_options)) {
+			score_string += `${prop} = ${val}\n`
+		}
 		try {
-			await invoke('write_toml', {filename: `${config_dir}/layout_info.txt`, numThreads: num_threads, layoutInfo: li, geneticOptions: gen_string, keycodeOptions: keycode_string, datasetOptions: dataset_string})
+			await invoke('write_toml', {filename: `${config_dir}/layout_info.toml`, numThreads: num_threads, layoutInfo: li, geneticOptions: gen_string, keycodeOptions: keycode_string, datasetOptions: dataset_options, scoreOptions: score_options})
 		} catch (e) {
 			alert(e)
 		}
@@ -316,6 +323,15 @@
 			console.error(e)
 		})
 	}
+	async function get_default_score_options() {
+		await invoke("get_default_score_options").then((res) => {
+			score_options = res
+		}).catch((e) => {
+			alert(e)
+			console.error(e)
+		})
+	}
+
 
 	let options_display = "options_inline"
 
@@ -348,8 +364,10 @@
 			config_dir = res
 		})
 		get_default_genetic_options()
-		get_default_dataset_options()
 		get_default_keycode_options()
+		get_default_dataset_options()
+		get_default_score_options()
+
 		// console.log(`effort layer str ${effort_layer_string} phalanx layer str ${phalanx_layer_string}`)
 		// create_blank_layers()
 		// appWindow.once("ready", async () => {
@@ -488,6 +506,13 @@
 		<span>{key} = {value}</span> <br>
 	{/each}
 	{/if}
+
+	{#if score_options}
+	<h3>Scoring options</h3>
+	{#each Object.entries(score_options) as [key, value]}
+		<span>{key} = {value}</span> <br>
+	{/each}
+	{/if}
 	</div>
 
 </div>
@@ -518,16 +543,20 @@
 		flex-wrap: wrap;
 		min-width: 50%;
 		width: fit-content;
-		box-shadow: 5px 5px $blue_dark2;
+		box-shadow: 5px 5px 0px 2px $blue_dark2; //, 8px 8px 8px $blue_dark2;
+		// filter: blur(2px);
 		border: 3px solid $text;
 		border-radius: 0px 10px 10px 10px;
+		// -webkit-border-radius: 0px 10px 10px 10px;
+ 		// -moz-border-radius: 0px 10px 10px 10px;
 		padding: 10px 10px 10px 10px;
-		// margin: 10px;
 	}
+	
 	.layout {
 		flex: 1 1 auto;
 	}
 	.options {
+		margin: 1rem;
 		margin-left: 3rem;
 	}
 	.options_inline {

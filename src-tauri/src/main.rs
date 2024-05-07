@@ -4,7 +4,7 @@
 use std::{fs, path::PathBuf};
 
 use strum::IntoEnumIterator;
-use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout::Layout, layout_presets::{get_all_layout_size_presets, get_size_variant}}, optimizer::{config::{DatasetOptions, GeneticOptions, LayoutInfoTomlAdapter, LayoutOptimizerTomlAdapter}, optimize_from_toml, LayoutOptimizer}, text_processor::keycode::{generate_default_keycode_set, Keycode, KeycodeOptions}};
+use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout::Layout, layout_presets::{get_all_layout_size_presets, get_size_variant}}, optimizer::{config::{DatasetOptions, GeneticOptions, LayoutInfoTomlAdapter, LayoutOptimizerTomlAdapter, ScoreOptions}, optimize_from_toml, LayoutOptimizer}, text_processor::keycode::{generate_default_keycode_set, Keycode, KeycodeOptions}};
 use alc::keyboard::layout_presets::LayoutSizePresets::*;
 use tauri::{api::path::config_dir, Manager};
 
@@ -32,7 +32,8 @@ fn main() {
 		get_default_genetic_options,
 		get_default_keycode_options,
 		get_default_dataset_options,
-		recompute_valid_keycodes,])
+		recompute_valid_keycodes,
+		get_default_score_options,])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -125,7 +126,7 @@ fn create_blank_layers(r: usize, c: usize, loc: String) -> Result<(String, Strin
 }
 
 #[tauri::command]
-fn write_toml(filename: &str, layout_info: LayoutInfoTomlAdapter, num_threads: usize, genetic_options: String, keycode_options: String, dataset_options: String) -> Result<(), AlcError> {
+fn write_toml(filename: &str, layout_info: LayoutInfoTomlAdapter, num_threads: usize, genetic_options: String, keycode_options: String, dataset_options: DatasetOptions, score_options: ScoreOptions) -> Result<(), AlcError> {
 	println!("writing {} with {:?}, {:?}", filename, layout_info, genetic_options);
 	let toml = format!("\
 	[layout_info]\n\
@@ -148,8 +149,10 @@ fn write_toml(filename: &str, layout_info: LayoutInfoTomlAdapter, num_threads: u
 	[layout_optimizer_config.keycode_options]\n\
 	{}\n\
 	[layout_optimizer_config.dataset_options]\n\
-	{}\n\
-	", layout_info.num_rows, layout_info.num_cols, layout_info.layout, layout_info.effort_layer, layout_info.phalanx_layer, num_threads,  genetic_options, keycode_options, dataset_options);
+	{:?}\n\
+	[layout_optimizer_config.score_options]\n\
+	{:?}\n\
+	", layout_info.num_rows, layout_info.num_cols, layout_info.layout, layout_info.effort_layer, layout_info.phalanx_layer, num_threads,  genetic_options, keycode_options, dataset_options, score_options);
 	fs::write(filename, toml).unwrap_or_else(|_| panic!("unable to write file {}", filename));
 	Ok(())
 }
@@ -188,4 +191,9 @@ fn recompute_valid_keycodes(options: KeycodeOptions) -> Vec<Keycode> {
 #[tauri::command]
 fn get_default_dataset_options() -> DatasetOptions {
 	DatasetOptions::default()
+}
+
+#[tauri::command]
+fn get_default_score_options() -> ScoreOptions {
+	ScoreOptions::default()
 }

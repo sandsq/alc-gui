@@ -289,7 +289,7 @@
 		color: $text;
 	}
 	table {
-		border-spacing: 5px;
+		border-spacing: 4px;
 		margin-bottom: 20px;
 	}
 	.column_indexes {
@@ -303,7 +303,7 @@
 		font-size: 16px;
 		text-align: center;
 		padding: $key_padding;
-		box-shadow: 5px 5px $blue_dark2;
+		box-shadow: 4px 4px $blue_dark2;
 	}
 	.keyoffset {
 		padding-right: $key_padding + 2px;
@@ -315,7 +315,7 @@
 	.has_keycode {
 		background-color: $background1;
 		border: 3px solid $background3;
-		box-shadow: 5px 5px $blue_dark1;
+		box-shadow: 4px 4px $blue_dark1;
 	}
 	.has_keycode select {
 		background-color: $background;
