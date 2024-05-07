@@ -29,10 +29,33 @@
 	let selected_toml_file;
 	/**@type {string}*/
 	let layout_string;
-	// /**@type {string}*/
-	// let effort_layer_string;
-	// /**@type {string}*/
-	// let phalanx_layer_string;
+	/**@type {string}*/
+	let effort_layer_string; 
+	/**@type {string}*/
+	let phalanx_layer_string; 
+
+	/**@type {number}*/
+	let num_threads = 1;
+	/**@type {any}*/
+	let genetic_options;
+	/**@type {string[]}*/
+	let valid_keycodes = [];
+	/**@type {any}*/
+	let dataset_options;
+
+	/**
+	 * @typedef {Object} KeycodeOptions
+	 * @type {Record<string, boolean | string[]>}}
+	 * @property {boolean} include_alphas
+	 * @proprety {boolean} include_numbers
+	 * @property {boolean} include_number_symbols
+	 * @proprety {boolean} include_brackets
+	 * @property {boolean} include_misc_symbols
+	 * @property {boolean} include_misc_symbols_shifted
+	 * @property {string[]} explicit_inclusions
+	*/
+	/**@type {KeycodeOptions}*/
+	let keycode_options;
 
 	async function open_toml() {
 		const opened_file = await open({
@@ -52,6 +75,11 @@
 					layout_string = res.layout_info.layout;
 					effort_layer_string = res.layout_info.effort_layer
 					phalanx_layer_string = res.layout_info.phalanx_layer
+					num_threads = res.layout_optimizer_config.num_threads
+					genetic_options = res.layout_optimizer_config.genetic_options
+					keycode_options = res.layout_optimizer_config.keycode_options
+					
+					dataset_options = res.layout_optimizer_config.dataset_options
 					console.log(`successfully loaded ${opened_file}`)
 				})
 				.catch((e) => {
@@ -74,13 +102,28 @@
 	let max_layers = 15;
 
 
+	// /**
+	// * @typedef {Object} Key
+	// * @property {string} keycode
+	// * @property {boolean} locked
+	// * @property {boolean} symmetric
+	// */
+
 	/**
-	* @typedef {Object} Key
-	* @property {string} keycode
-	* @property {boolean} locked
-	* @property {boolean} symmetric
+	 * @constructor
+	 * @param {string} keycode
+	 * @param {boolean} locked
+	 * @param {boolean} symmetric
 	*/
-	
+	function Key(keycode, locked, symmetric) {
+		this.keycode = keycode
+		this.locked = locked
+		this.symmetric = symmetric
+	}
+	Key.prototype.toString = function() {
+		return `${this.keycode}_${+!this.locked}${+this.symmetric}`
+	}
+
 	/** @type {Key[][][]}*/
 	let layout;
 	/** @type {number[][]}*/
@@ -104,26 +147,122 @@
 	// let active_tab_border = "#d65d0e"
 	// let inactive_tab_border = "#847b6b"
 
-	/**
-	* @typedef {Object} Payload
-	* @property {string} message
-	* @property {boolean} pass
+	/**@param {number} c
+	 * @param {boolean} is_key
+	 * 7 and 4 are numbers from the alc backend
 	*/
-	let test_path = "/home/sand/Downloads/test.txt"
+	function col_indexes_to_string(c, is_key) {
+		let output = "   "
+		for (let k = 0; k < c; k++) {
+			if (is_key) {
+				output += k.toString().padStart(7)
+			} else {
+				output += k.toString().padStart(4)
+			}
+			output += " "
+		}
+		return output
+	}
+
+	/**
+	 * @param {number[][] | [string, string][][]} layer
+	*/
+	function layer_to_string(layer) {
+		let output = ""
+		let col_inds = col_indexes_to_string(layer[0].length, false)
+		output += col_inds
+		output += "\n"
+		for (let i = 0; i < layer.length; i++) {
+			output += `${i}|`
+			for (let j = 0; j < layer[0].length; j++) {
+				let v = layer[i][j]
+				if (Array.isArray(v)) {
+					output += `${v[0][0]}:${v[1][0]}`.padStart(4)
+				} else {
+					output += v.toString().padStart(4)
+				}
+			}
+			output += " \n"
+		}
+		return output
+	}
+
+	/**
+	 * @param {Key[][]} layer
+	*/
+	function keycode_layer_to_string(layer) {
+		let output = ""
+		let col_inds = col_indexes_to_string(layer[0].length, true)
+		output += col_inds
+		output += "\n"
+		for (let i = 0; i < layer.length; i++) {
+			output += `${i}|`
+			for (let j = 0; j < layer[0].length; j++) {
+				let v = layer[i][j]
+				output += `${v.keycode}_${+!v.locked}${+v.symmetric}`.padStart(8)
+			}
+			output += " \n"
+		}
+		return output
+	}
+
+
+	/**@param {Key[][][]} layout*/
+	function layout_to_string(layout) {
+		let output = ""
+		for (let n = 0; n < layout.length; n++) {
+			output += `___Layer ${n}___\n`
+			let layer = keycode_layer_to_string(layout[n])
+			output += layer
+		}
+		return output
+	}
+
+	/**
+	* @typedef {Object} LayoutInfo
+	* @property {number} num_rows
+	* @property {number} num_cols
+	* @property {string} layout
+	* @property {string} effort_layer
+	* @property {string} phalanx_layer
+	*/
 	async function write_toml() {
-		/**@type Payload*/
-		let p = { message: effort_layer_string, pass: true }
+		/**@type LayoutInfo*/
+		let li = {
+			num_rows: selected_size[0],
+			num_cols: selected_size[1],
+			layout: layout_to_string(layout),
+			effort_layer: layer_to_string(effort_layer),
+			phalanx_layer: layer_to_string(phalanx_layer)
+		}
+		let gen_string = ""
+		for (let [prop, val] of Object.entries(genetic_options)) {
+			gen_string += `${prop} = ${val}\n`
+		}
+		let keycode_string = ""
+		for (let [prop, val] of Object.entries(keycode_options)) {
+			if (Array.isArray(val)) {
+				keycode_string += `${prop} = ["${val.join("\", \"")}"]\n`
+			} else {
+				keycode_string += `${prop} = ${val}\n`
+			}
+			
+		}
+		let dataset_string = ""
+		for (let [prop, val] of Object.entries(dataset_options)) {
+			if (Array.isArray(val)) {
+				dataset_string += `${prop} = ["${val.join("\", \"")}"]\n`
+			} else {
+				dataset_string += `${prop} = ${val}\n`
+			}
+		}
 		try {
-			await invoke('write_toml', {filename: test_path, p: p})
+			await invoke('write_toml', {filename: `${config_dir}/layout_info.txt`, numThreads: num_threads, layoutInfo: li, geneticOptions: gen_string, keycodeOptions: keycode_string, datasetOptions: dataset_string})
 		} catch (e) {
 			alert(e)
 		}
 	}
 
-	/**@type {string}*/
-	let effort_layer_string; 
-	/**@type {string}*/
-	let phalanx_layer_string; 
 
 	
 	/**
@@ -142,24 +281,67 @@
 		}
 	}
 	$: selected_size, create_blank_layers(selected_size, "from $: selected_size, ..."), is_size_from_config = false
-	// $: {
-	// 	if (selected_toml_file) {
 
-	// 	} else {
-	// 		create_blank_layers(selected_size, "from $: selected_size")
-	// 	}
-	// }
-	// $: effort_layer_string, console.log(`new efforts ${effort_layer_string}`)
-	// $: phalanx_layer_string
+	async function get_default_genetic_options() {
+		await invoke("get_default_genetic_options").then((res) => {
+			genetic_options = res
+		}).catch((e) => {
+			alert(e)
+			console.error(e)
+		})
+	}
+	async function get_default_keycode_options() {
+		await invoke("get_default_keycode_options").then((res) => {
+			keycode_options = res[0]
+			valid_keycodes = res[1]
+			
+		}).catch((e) => {
+			alert(e)
+			console.error(e)
+		})
+	}
+	async function get_default_dataset_options() {
+		await invoke("get_default_dataset_options").then((res) => {
+			dataset_options = res
+		}).catch((e) => {
+			alert(e)
+			console.error(e)
+		})
+	}
 
+	let options_display = "options_inline"
+
+	function readjust_tab_contents() {
+		/**@type {HTMLElement | null}*/
+		let layout_element = document.querySelector(".layout")
+		/**@type {HTMLElement | null}*/
+		let options_inline_element = document.querySelector("options_inline")
+		/**@type {HTMLElement | null}*/
+		let options_block_element = document.querySelector("options_block")
+		if (layout_element !== null && options_inline_element !== null && options_block_element !== null) { 
+			if (layout_element.offsetWidth >= options_inline_element.offsetWidth) {
+				options_display = "options_block"
+			} else {
+				options_display = "options_inline"
+			}
+		}
+	}
+
+	let config_dir = ""
 	onMount(() => {
+
 		get_sizes().then((res) => {
 			// if I do this assignment, then the effort layer and hand assignment don't update
 			selected_size = layout_sizes[0]
 		})
 		
 		get_keycodes()
-
+		invoke("get_config_dir").then((res) => {
+			config_dir = res
+		})
+		get_default_genetic_options()
+		get_default_dataset_options()
+		get_default_keycode_options()
 		// console.log(`effort layer str ${effort_layer_string} phalanx layer str ${phalanx_layer_string}`)
 		// create_blank_layers()
 		// appWindow.once("ready", async () => {
@@ -174,6 +356,7 @@
 	<h1>Debug section</h1>
 	<p>size: {selected_size}</p>
 	<p>file: {selected_toml_file}</p>
+	<p>config dir: {config_dir}</p>
 	<p>tab: {active_tab}</p>
 </div>
 <div class="column2">
@@ -217,8 +400,8 @@
 </div>
 </div>
 
-<input type="text" bind:value={test_path} />
-<button on:click={write_toml}>Write</button>
+<p>Config dir: <input type="text" bind:value={config_dir} />
+<button on:click={write_toml}>Write</button></p>
 
 <h1>Layout section</h1>
 <div>
@@ -226,7 +409,7 @@
 	or
 	choose layout size:
 	<!-- {#await get_sizes then} -->
-	<select bind:value={selected_size}>
+	<select bind:value={selected_size} on:change={readjust_tab_contents}>
 		{#each layout_sizes as size}
 			<option value={size}>{size[0]} x {size[1]}</option>
 		{/each}
@@ -251,6 +434,7 @@
 	<button on:click={() => active_tab = 'tab3'} class="{active_tab == "tab3" ? "active_tab" : "inactive_tab"} tab">Hand assignment</button>
 </div>
 <div class="tab_contents">
+	<div class="layout">
 	<div class={active_tab == "tab1" ? "tabshow" : "tabhide"}>
 		<svelte:component this={tab_components["tab1"]} bind:layout={layout} bind:keycodes={keycodes} bind:num_layers={selected_num_layers} bind:layout_size={selected_size} bind:layout_string={layout_string} />
 	</div>
@@ -260,8 +444,48 @@
 	<div class={active_tab == "tab3" ? "tabshow" : "tabhide"}>
 		<svelte:component this={tab_components["tab3"]} bind:phalanx_layer_string={phalanx_layer_string} bind:phalanx_layer={phalanx_layer} bind:layout_size={selected_size} />
 	</div>
+	</div>
+
+	
+	<div class="options {options_display}">
+	<h2>Options</h2>
+	num_threads: <input type="range" min=1 max=24 bind:value={num_threads} /> {num_threads}
+	{#if genetic_options}
+	<h3>Genetic options</h3>
+		{#each Object.entries(genetic_options) as [key, value]}
+		{#if key == "population_size"}
+			{key}: <input type="range" min=0 max=10000 step=100 bind:value={genetic_options[key]} /> <input type="number" bind:value={genetic_options[key]} />
+			<br>
+		{:else}
+			<span>{key} = {value}</span> <br>
+		{/if}
+		{/each}
+	{/if}
+
+	{#if keycode_options}
+	<h3>Keycode options</h3>
+	<div style="width: 400px; word-wrap: break-word;"><span>{valid_keycodes}</span></div>
+	{#each Object.entries(keycode_options) as [key, value]}
+		{#if typeof(keycode_options[key]) === "boolean"}
+		{key}: <input type="checkbox" bind:checked={keycode_options[key]} /> <br>
+		{:else}
+		<span>{key} = {keycode_options[key]}</span> <br>
+		{/if}
+	{/each}
+	{/if}
+
+	{#if dataset_options}
+	<h3>Dataset options</h3>
+	{#each Object.entries(dataset_options) as [key, value]}
+		<span>{key} = {value}</span> <br>
+	{/each}
+	{/if}
+	</div>
+
 </div>
 {/if}
+
+
 
 <style lang="scss">
 	@use "../styles/colors.scss" as *;
@@ -281,11 +505,9 @@
 		// float: left;
 		width: 70%;
 	}
-	h1 {
-		font-size: 32px;
-	}
 	.tab_contents {
-		// display: inline-block;
+		display: flex;
+		flex-wrap: wrap;
 		min-width: 50%;
 		width: fit-content;
 		box-shadow: 5px 5px $blue_dark2;
@@ -293,6 +515,18 @@
 		border-radius: 0px 10px 10px 10px;
 		padding: 10px 10px 10px 10px;
 		// margin: 10px;
+	}
+	.layout {
+		flex: 1 1 auto;
+	}
+	.options {
+		margin-left: 3rem;
+	}
+	.options_inline {
+		flex: 0 0 auto;
+	}
+	.options_block {
+		flex: 0 0 100%;
 	}
 	// these hide show are the contents
 	.tabhide {
@@ -335,5 +569,5 @@
 		border-left: none;
 		box-shadow: 3px 0 $text, -3px 0px $text;
 	}
-	
+
 </style>

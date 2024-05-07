@@ -1,3 +1,5 @@
+
+
 /**@param {string} str*/
 function isDigit(str) {
 	if (str.includes("|")) return false

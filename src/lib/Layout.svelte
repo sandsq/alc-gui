@@ -2,12 +2,22 @@
 	import { split_layer_to_rows, split_row_to_columns } from "./utils.js"
 	import { getContext } from "svelte"
 	import { onMount } from 'svelte'
+	
+
 	/**
-	* @typedef {Object} Key
-	* @property {string} keycode
-	* @property {boolean} locked
-	* @property {boolean} symmetric
+	 * @constructor
+	 * @param {string} keycode
+	 * @param {boolean} locked
+	 * @param {boolean} symmetric
 	*/
+	function Key(keycode, locked, symmetric) {
+		this.keycode = keycode
+		this.locked = locked
+		this.symmetric = symmetric
+	}
+	Key.prototype.toString = function() {
+		return `${this.keycode}_${+!this.locked}${+this.symmetric}`
+	}
 
 	/**@type {number}*/
 	export let num_layers;
