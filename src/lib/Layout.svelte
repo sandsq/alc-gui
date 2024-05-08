@@ -179,21 +179,23 @@
 		console.log(`current keycode at start ${previous_keycode}`)
 		console.log(`new keycode ${new_keycode}`)
 		// if LS is being replaced, replace its corresponding place as well
-		if (previous_keycode == "LS") {
+		if (previous_keycode.includes("LS")) {
+			// corresponding location might be in a lower layer so check all
 			for (let n = 0; n < layout.length; n++) {
 				if (layer == n) {
 					continue
 				}
-				if (layout[n][row][col].keycode == "LS") {
+				if (layout[n][row][col].keycode.includes("LS")) {
 					layout[n][row][col].keycode = "NO"
 				}
 			}
 		}
-		// if the key is being replaced with LS, specify the corresponding layer
-		if (new_keycode == "LS" && from_select) {
-			let corresponding_layer_string = prompt(`specify corresponding layer (${0}-${layout.length - 1}):`)
-			if (corresponding_layer_string && Number.isInteger(parseInt(corresponding_layer_string))) {
-				let corresponding_layer = parseInt(corresponding_layer_string)
+		if (new_keycode.includes("LS")) {
+			const regex = /^LS(\d+)$/;
+			const match = new_keycode.match(regex);
+			let corresponding_layer = -1;
+			if (match) {
+				corresponding_layer = parseInt(match[1], 10);
 				if (layout[corresponding_layer][row][col].locked) {
 					alert("can't assign corresponding layer switch to this position as it is occupied by a locked key")
 					layout[layer][row][col].keycode = previous_keycode
@@ -201,11 +203,32 @@
 					alert("can't assign corresponding layer switch to this position as it is occupied by a symmetric key")
 					layout[layer][row][col].keycode = previous_keycode
 				} else {
-					layout[corresponding_layer][row][col].keycode = "LS"
+					layout[corresponding_layer][row][col].keycode = new_keycode
 					// layout[layer][row][col].keycode = previous_keycode
 				}
+			} else {
+				let msg = `${new_keycode} has no target layer (i.e., the X in LSX). This is probably a developer error due to parsing.`
+				alert(msg)
+				console.error(msg);
 			}
 		}
+		// // if the key is being replaced with LS, specify the corresponding layer
+		// if (new_keycode == "LS" && from_select) {
+		// 	let corresponding_layer_string = prompt(`specify corresponding layer (${0}-${layout.length - 1}):`)
+		// 	if (corresponding_layer_string && Number.isInteger(parseInt(corresponding_layer_string))) {
+		// 		let corresponding_layer = parseInt(corresponding_layer_string)
+		// 		if (layout[corresponding_layer][row][col].locked) {
+		// 			alert("can't assign corresponding layer switch to this position as it is occupied by a locked key")
+		// 			layout[layer][row][col].keycode = previous_keycode
+		// 		} else if (layout[corresponding_layer][row][col].symmetric) {
+		// 			alert("can't assign corresponding layer switch to this position as it is occupied by a symmetric key")
+		// 			layout[layer][row][col].keycode = previous_keycode
+		// 		} else {
+		// 			layout[corresponding_layer][row][col].keycode = "LS"
+		// 			// layout[layer][row][col].keycode = previous_keycode
+		// 		}
+		// 	}
+		// }
 		
 	}
 	

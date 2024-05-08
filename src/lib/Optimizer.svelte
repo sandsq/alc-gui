@@ -152,6 +152,17 @@
 	}
 	async function get_keycodes() {
 		keycodes = await invoke('get_all_keycodes')
+		keycodes = keycodes.filter(x => x != "LS" && x != "LST")
+	}
+	$: {
+		selected_num_layers
+		keycodes = keycodes.filter(str => {
+			const regex = /^LS\d+$/;
+			return !regex.test(str);
+		});
+		for (let n = 0; n < selected_num_layers; n++) {
+			keycodes.push(`LS${n}`)
+		}
 	}
 
 	// let active_tab_color = "#FBF1C7"
@@ -220,6 +231,18 @@
 
 	/**@param {Key[][][]} layout*/
 	function layout_to_string(layout) {
+		// for (let n = 0; n < layout.length; n++) {
+		// 	let layer = layout[n]
+		// 	for (let i = 0; i < layer.length; i++) {
+		// 		let row = layer[i]
+		// 		for (let j = 0; j < row.length; j++) {
+		// 			let col = row[j]
+		// 			if (col.keycode == "LS") {
+
+		// 			}
+		// 		}
+		// 	}
+		// }
 		let output = ""
 		for (let n = 0; n < layout.length; n++) {
 			output += `___Layer ${n}___\n`
@@ -272,7 +295,7 @@
 			score_string += `${prop} = ${val}\n`
 		}
 		try {
-			await invoke('write_toml', {filename: `${config_dir}/layout_info.toml`, numThreads: num_threads, layoutInfo: li, geneticOptions: gen_string, keycodeOptions: keycode_string, datasetOptions: dataset_options, scoreOptions: score_options})
+			await invoke('write_toml', {filename: `${config_dir}/saved.toml`, numThreads: num_threads, layoutInfo: li, geneticOptions: genetic_options, keycodeOptions: keycode_options, datasetOptions: dataset_options, scoreOptions: score_options})
 		} catch (e) {
 			alert(e)
 		}
@@ -476,7 +499,7 @@
 <div class="tab_contents">
 	<div class="layout">
 	<div class={active_tab == "tab1" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab1"]} bind:layout={layout} keycodes={keycodes} num_layers={selected_num_layers} layout_size={selected_size} layout_string={layout_string} {is_size_from_config} />
+		<svelte:component this={tab_components["tab1"]} bind:layout={layout} bind:keycodes={keycodes} num_layers={selected_num_layers} layout_size={selected_size} layout_string={layout_string} {is_size_from_config} />
 	</div>
 	<div class={active_tab == "tab2" ? "tabshow" : "tabhide"}>
 		<svelte:component this={tab_components["tab2"]} bind:effort_layer_string={effort_layer_string} bind:effort_layer={effort_layer} bind:layout_size={selected_size} />
