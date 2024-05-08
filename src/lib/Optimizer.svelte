@@ -59,50 +59,40 @@
 	let keycode_options;
 	/**@type {any}*/
 	let score_options;
-	
-	
 
-	/**@param {boolean} show_open_dialog*/
-	async function open_toml(show_open_dialog) {
-		/**@type {string | string[] | null}*/
-		let opened_file = ""
-		if (show_open_dialog) {
-			opened_file = await open({
-				multiple: false,
-				filters: [{
-					name: 'toml',
-					extensions: ['toml']
-				}]
-			})
-		} else {
-			opened_file = saved_file
+	async function open_toml() {
+		const opened_file = await open({
+			multiple: false,
+			filters: [{
+				name: 'toml',
+				extensions: ['toml']
+			}]
+		});
+		if (opened_file !== null) {
+			invoke('process_config', {configFile: opened_file})
+				.then((res) => {
+					selected_toml_file = opened_file
+					selected_size = [res.layout_info.num_rows, res.layout_info.num_cols]
+					is_size_from_config = true
+					selected_num_layers = (res.layout_info.layout.match(/Layer/g) || []).length;
+					layout_string = res.layout_info.layout;
+					effort_layer_string = res.layout_info.effort_layer
+					phalanx_layer_string = res.layout_info.phalanx_layer
+					num_threads = res.layout_optimizer_config.num_threads
+					genetic_options = res.layout_optimizer_config.genetic_options
+					keycode_options = res.layout_optimizer_config.keycode_options
+					recompute_valid_keycodes()
+					dataset_options = res.layout_optimizer_config.dataset_options
+					score_options = res.layout_optimizer_config.score_options
+					console.log(`successfully loaded ${opened_file}`)
+				})
+				.catch((e) => {
+					alert(e);
+					console.error(e);
+				})
+			// console.log(selected_file)
+			// emit("selected_toml_changed", toml_file)
 		}
-		if (opened_file) {
-			console.log(`selected ${opened_file} to open`)
-			invoke('process_config', {configFile: opened_file}).then((res) => {
-				selected_toml_file = opened_file
-				is_from_config = true
-				selected_size = [res.layout_info.num_rows, res.layout_info.num_cols]
-				selected_num_layers = (res.layout_info.layout.match(/Layer/g) || []).length;
-				layout_string = res.layout_info.layout;
-				effort_layer_string = res.layout_info.effort_layer
-				phalanx_layer_string = res.layout_info.phalanx_layer
-				num_threads = res.layout_optimizer_config.num_threads
-				genetic_options = res.layout_optimizer_config.genetic_options
-				keycode_options = res.layout_optimizer_config.keycode_options
-				recompute_valid_keycodes()
-				dataset_options = res.layout_optimizer_config.dataset_options
-				score_options = res.layout_optimizer_config.score_options
-				loaded = true
-				console.log(`successfully loaded ${selected_toml_file}`)
-			})
-			.catch((e) => {
-				alert(e);
-				console.error(e);
-			})		
-		}
-
-		
 	}
 
 	/** @type {[number, number][]}*/
@@ -110,7 +100,7 @@
 	/** @type {[number, number]}*/
 	let selected_size; //= [2, 4];
 	/** @type {boolean}*/
-	let is_from_config = false
+	let is_size_from_config = false
 	/** @type {number}*/
 	let selected_num_layers = 3;
 	let max_layers = 15;
@@ -152,10 +142,6 @@
 	async function get_sizes() {
 		layout_sizes = await invoke('get_layout_presets')
 		// selected_size = layout_sizes[0]
-		// .then((res) => {
-			// layout_sizes = res
-			// selected_size = res[0]
-		// })
 	}
 	async function get_keycodes() {
 		keycodes = await invoke('get_all_keycodes')
@@ -279,7 +265,7 @@
 			score_string += `${prop} = ${val}\n`
 		}
 		try {
-			await invoke('write_toml', {filename: `${config_dir}/saved.toml`, numThreads: num_threads, layoutInfo: li, geneticOptions: genetic_options, keycodeOptions: keycode_options, datasetOptions: dataset_options, scoreOptions: score_options})
+			await invoke('write_toml', {filename: `${config_dir}/layout_info.toml`, numThreads: num_threads, layoutInfo: li, geneticOptions: gen_string, keycodeOptions: keycode_string, datasetOptions: dataset_options, scoreOptions: score_options})
 		} catch (e) {
 			alert(e)
 		}
@@ -291,21 +277,18 @@
 	 * @param {[number, number]} size
 	 * @param {string} test*/
 	async function create_blank_layers(size, test) {
-		if (size && !is_from_config) {
+		if (size && !is_size_from_config) {
 			console.log(test)
 			await invoke('create_blank_layers', {r: size[0], c: size[1], loc: test}).then((res) => {
 				effort_layer_string = res[0]
 				phalanx_layer_string = res[1]
-				is_from_config = false
 			}).catch((e) => {
 				alert(e)
 				console.error(e)
 			})
 		}
 	}
-	$: {
-		create_blank_layers(selected_size, "from $: selected_size, ...")
-	}
+	$: selected_size, create_blank_layers(selected_size, "from $: selected_size, ..."), is_size_from_config = false
 
 	async function get_default_genetic_options() {
 		await invoke("get_default_genetic_options").then((res) => {
@@ -369,55 +352,36 @@
 	}
 
 	let config_dir = ""
-	let saved_file = `${config_dir}/saved.toml`
-	async function get_config_dir() {
-		config_dir = await invoke("get_config_dir")
-		return config_dir
-		// invoke("get_config_dir").then((res) => {
-		// 	config_dir = res
-		// 	saved_file = `${config_dir}/saved.toml`
-		// 	// open_toml(false)
-		// }).catch((e) => {
-		// 	alert(e)
-		// 	console.error(e)
-		// })
-	}
-	
-	async function load_or_create_blank() {
-		invoke("check_saved_toml", {filename: saved_file}).then((res) => {
-			if (res) {
-				console.log(`saved toml ${saved_file} exists`)
-				open_toml(false)
-			} else {
-				console.log(`saved toml ${saved_file} does not exist`)
-				selected_size = [2, 4]
-				loaded = true
-			}
-			
-		})
-	}
-
-	let loaded = false
 	onMount(() => {
-		get_sizes()
+
+		get_sizes().then((res) => {
+			// if I do this assignment, then the effort layer and hand assignment don't update
+			selected_size = layout_sizes[0]
+		})
+		
+		get_keycodes()
+		invoke("get_config_dir").then((res) => {
+			config_dir = res
+		})
 		get_default_genetic_options()
 		get_default_keycode_options()
 		get_default_dataset_options()
 		get_default_score_options()
-		get_keycodes()
-		get_config_dir().then((res) => {
-			saved_file = `${config_dir}/saved.toml`
-			load_or_create_blank()
-		})
-		
+
+		// console.log(`effort layer str ${effort_layer_string} phalanx layer str ${phalanx_layer_string}`)
+		// create_blank_layers()
+		// appWindow.once("ready", async () => {
+		// 	await create_blank_layers("app window ready")
+			// selected_size = layout_sizes[0]
+		// })
 	})
 </script>
 
 <div class="debug">
 <div class="column1">
 	<h1>Debug section</h1>
-	<p>selected size: {selected_size}</p>
-	<p>selected file: {selected_toml_file}</p>
+	<p>size: {selected_size}</p>
+	<p>file: {selected_toml_file}</p>
 	<p>config dir: {config_dir}</p>
 	<p>tab: {active_tab}</p>
 </div>
@@ -467,15 +431,16 @@
 
 <h1>Layout section</h1>
 <div>
-	<button on:click={() => open_toml(true)}>Load config</button>
+	<button on:click={open_toml}>Load config</button>
 	or
 	choose layout size:
-	<!-- bind:value={selected_size}  -->
+	<!-- {#await get_sizes then} -->
 	<select bind:value={selected_size} on:change={readjust_tab_contents}>
 		{#each layout_sizes as size}
 			<option value={size}>{size[0]} x {size[1]}</option>
 		{/each}
 	</select>
+	<!-- {/await} -->
 	and number of layers:
 	<select bind:value={selected_num_layers}>
 		{#each {length: max_layers} as _, i}
@@ -488,25 +453,22 @@
 <br>
 <br>
 
-
+{#if selected_size}
 <div class="tabs">
 	<button on:click={() => active_tab = 'tab1'} class="{active_tab == "tab1" ? "active_tab" : "inactive_tab"} tab">Layout</button>
 	<button on:click={() => active_tab = 'tab2'} class="{active_tab == "tab2" ? "active_tab" : "inactive_tab"} tab">Effort layer</button>
 	<button on:click={() => active_tab = 'tab3'} class="{active_tab == "tab3" ? "active_tab" : "inactive_tab"} tab">Hand assignment</button>
 </div>
-
-{#if loaded}
-<!-- {#await load_or_create_blank} -->
 <div class="tab_contents">
 	<div class="layout">
 	<div class={active_tab == "tab1" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab1"]} layout_string={layout_string} layout_size={selected_size} keycodes={keycodes} num_layers={selected_num_layers} {is_from_config} bind:layout={layout} />
+		<svelte:component this={tab_components["tab1"]} bind:layout={layout} bind:keycodes={keycodes} bind:num_layers={selected_num_layers} bind:layout_size={selected_size} bind:layout_string={layout_string} />
 	</div>
 	<div class={active_tab == "tab2" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab2"]} bind:layout_size={selected_size} bind:effort_layer_string={effort_layer_string} bind:effort_layer={effort_layer}  />
+		<svelte:component this={tab_components["tab2"]} bind:effort_layer_string={effort_layer_string} bind:effort_layer={effort_layer} bind:layout_size={selected_size} />
 	</div>
 	<div class={active_tab == "tab3" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab3"]} bind:layout_size={selected_size} bind:phalanx_layer_string={phalanx_layer_string} bind:phalanx_layer={phalanx_layer} />
+		<svelte:component this={tab_components["tab3"]} bind:phalanx_layer_string={phalanx_layer_string} bind:phalanx_layer={phalanx_layer} bind:layout_size={selected_size} />
 	</div>
 	</div>
 
@@ -518,7 +480,7 @@
 	<h3>Genetic options</h3>
 		{#each Object.entries(genetic_options) as [key, value]}
 		{#if key == "population_size"}
-			{key}: <input type="range" min=0 max=10000 step=100 bind:value={genetic_options[key]} /> <input type="text" bind:value={genetic_options[key]} />
+			{key}: <input type="range" min=0 max=10000 step=100 bind:value={genetic_options[key]} /> <input type="number" bind:value={genetic_options[key]} />
 			<br>
 		{:else}
 			<span>{key} = {value}</span> <br>
@@ -541,11 +503,7 @@
 	{#if dataset_options}
 	<h3>Dataset options</h3>
 	{#each Object.entries(dataset_options) as [key, value]}
-		{#if key == "dataset_paths"}
-		<div style="width: 400px; word-wrap: normal;"><span>{key} = {value.join(", ")}</span></div>
-		{:else}
-			<span>{key} = {value}</span> <br>
-		{/if}
+		<span>{key} = {value}</span> <br>
 	{/each}
 	{/if}
 
@@ -559,7 +517,6 @@
 
 </div>
 {/if}
-<!-- {/await} -->
 
 
 
