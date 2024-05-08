@@ -322,7 +322,7 @@
 			<th>{i}&nbsp;</th>
 			{#each {length: num_cols} as _, j}
 				<td>
-					<div class="keyoffset key {layout[n][i][j].keycode == "NO" ? "no_keycode" : "has_keycode"}">
+					<div class="keyoffset key {layout[n][i][j].keycode == "NO" ? "no_keycode" : "has_keycode"} {layout[n][i][j].locked ? "key_locked" : "key_unlocked"} {layout[n][i][j].symmetric ? "key_symmetric" : "key_asymmetric"} ">
 						{#if layout[n][i][j].keycode == "NO"}
 							<div class="keycode_fade"></div>
 						{/if}
@@ -406,6 +406,12 @@
 		background-color: $background;
 		border: 3px solid $purple_light;
 	}
+	.key_locked {
+		background-color: $red_light;
+	}
+	.key_symmetric {
+		background-color: $aqua_light;
+	}
 	.key_flag button {
 		margin-top: 5px;
 		font-size: 12px;
@@ -422,13 +428,13 @@
 		background-color: $background;
 	}
 	.locked button {
-		background-color: $yellow_light;
+		background-color: $red_dark;
 	}
 	.locked button:hover {
-		background-color: $yellow_light;
+		background-color: $red_light;
 	}
 	.symmetric button {
-		background-color: $aqua_light;
+		background-color: $aqua_dark;
 		font-size: 12px;
 	}
 	.symmetric button:hover {
