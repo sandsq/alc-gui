@@ -27,6 +27,8 @@
 	export let layout;
 	export let keycodes;
 	export let layout_string;
+	/**@type {boolean}*/
+	export let is_from_config;
 
 	/**
 	 * @param {string} keycode
@@ -43,6 +45,7 @@
 	}
 
 	function resize_layout() {
+		console.log(`trying to resize layout to ${num_layers} and ${layout_size}`)
 		if (num_layers && layout_size) {	
 			layout = [];
 			for (let n = 0; n < num_layers; n++) {
@@ -55,9 +58,11 @@
 					}
 				}
 			}
+			console.log("layout was resized")
 		}
 	}
 	function resize_num_layers() {
+		console.log(`trying to renumber layers to ${num_layers}`)
 		if (num_layers) {
 			/**@type {Key[][][]}*/
 			let output = []
@@ -77,16 +82,21 @@
 				output.push(layer)
 			}
 			layout = output
+			console.log("successfully renumbered layers")
 		}
 	}
-	$: layout_size, resize_layout()
+	$: {
+		layout_size
+		resize_layout()
+	}
 	$: num_layers, resize_num_layers()
 
 
-	/**@param {string} layout_string*/
-	function fill_layout_from_string(layout_string) {
+	/**@param {string} str*/
+	function fill_layout_from_string(str) {
 		resize_layout()
-		let layers = layout_string.split(/___(.*)___/g)
+		console.log(`trying to load into ${layout.length} layers`)
+		let layers = str.split(/___(.*)___/g)
 		layers = layers.filter((x) => x != "" && !x.includes("Layer"))
 		if (layout.length != layers.length) {
 			alert(`the number of layers in the layout (${layout.length}) does not match the number of layers found from the config (${layers.length}); this is probably a developer error due to parsing the config incorrectly`)
@@ -135,12 +145,12 @@
 				}
 			}
 		}
+		console.log(`filled\n${JSON.stringify(layout[0])} etc.`)
 	}
 	$: {
 		if (layout_string) {
 			fill_layout_from_string(layout_string)
 		}
-		
 	}
 
 	let previous_keycode = "";
@@ -207,18 +217,15 @@
 		let total_cols = layout[0][0].length;
 		let symmetric_col = (total_cols - 1) - j;
 		layout[n][i][symmetric_col].symmetric = value_to_set
-		
 	}
 
-	let locked_color = "#b37575"
-	let symmetric_color = "#99ebc2"
-
 	onMount(() => {
-		resize_layout()
+		// resize_layout()
 	})
 
 </script>
 
+test: {num_layers}
 {#if layout}
 {#each {length: layout.length} as _, n}
 	<h2>Layer {n}</h2>

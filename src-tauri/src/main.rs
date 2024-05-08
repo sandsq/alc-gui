@@ -1,12 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{fs, path::PathBuf};
+use std::{fs, path::{Path, PathBuf}};
 
 use strum::IntoEnumIterator;
-use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout::Layout, layout_presets::{get_all_layout_size_presets, get_size_variant}}, optimizer::{config::{DatasetOptions, GeneticOptions, LayoutInfoTomlAdapter, LayoutOptimizerTomlAdapter, ScoreOptions}, optimize_from_toml, LayoutOptimizer}, text_processor::keycode::{generate_default_keycode_set, Keycode, KeycodeOptions}};
+use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout::Layout, layout_presets::{get_all_layout_size_presets, get_size_variant}}, optimizer::{config::{DatasetOptions, GeneticOptions, LayoutInfoTomlAdapter, LayoutOptimizerConfig, LayoutOptimizerTomlAdapter, ScoreOptions}, optimize_from_toml, LayoutOptimizer}, text_processor::keycode::{self, generate_default_keycode_set, Keycode, KeycodeOptions}};
 use alc::keyboard::layout_presets::LayoutSizePresets::*;
-use tauri::{api::path::config_dir, Manager};
+use tauri::{api::{file, path::config_dir}, Manager};
 
 fn main() {
   tauri::Builder::default()
@@ -33,7 +33,8 @@ fn main() {
 		get_default_keycode_options,
 		get_default_dataset_options,
 		recompute_valid_keycodes,
-		get_default_score_options,])
+		get_default_score_options,
+		check_saved_toml,])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -126,34 +127,47 @@ fn create_blank_layers(r: usize, c: usize, loc: String) -> Result<(String, Strin
 }
 
 #[tauri::command]
-fn write_toml(filename: &str, layout_info: LayoutInfoTomlAdapter, num_threads: usize, genetic_options: String, keycode_options: String, dataset_options: DatasetOptions, score_options: ScoreOptions) -> Result<(), AlcError> {
-	println!("writing {} with {:?}, {:?}", filename, layout_info, genetic_options);
-	let toml = format!("\
-	[layout_info]\n\
-	num_rows = {}\n\
-	num_cols = {}\n\
-	layout = \"\"\"\n\
-	{}\n\
-	\"\"\"\n\
-	effort_layer = \"\"\"\n\
-	{}\n\
-	\"\"\"\n\
-	phalanx_layer = \"\"\"\n\
-	{}\n\
-	\"\"\"\n\
-	[layout_optimizer_config]\n\
-	valid_keycodes = []\n\
-	num_threads = {}\n\
-	[layout_optimizer_config.genetic_options]\n\
-	{}\n\
-	[layout_optimizer_config.keycode_options]\n\
-	{}\n\
-	[layout_optimizer_config.dataset_options]\n\
-	{:?}\n\
-	[layout_optimizer_config.score_options]\n\
-	{:?}\n\
-	", layout_info.num_rows, layout_info.num_cols, layout_info.layout, layout_info.effort_layer, layout_info.phalanx_layer, num_threads,  genetic_options, keycode_options, dataset_options, score_options);
-	fs::write(filename, toml).unwrap_or_else(|_| panic!("unable to write file {}", filename));
+fn write_toml(filename: &str, layout_info: LayoutInfoTomlAdapter, num_threads: usize, genetic_options: GeneticOptions, keycode_options: KeycodeOptions, dataset_options: DatasetOptions, score_options: ScoreOptions) -> Result<(), AlcError> {
+	println!("writing {}", filename);
+	let layout_optimizer_config = LayoutOptimizerConfig {
+		genetic_options,
+		keycode_options: keycode_options.clone(),
+		valid_keycodes: vec![], //generate_default_keycode_set(&keycode_options).into_iter().collect(),
+		dataset_options,
+		score_options,
+		num_threads,
+	};
+	let toml_adapter = LayoutOptimizerTomlAdapter {
+		layout_info,
+		layout_optimizer_config,
+	};
+	toml_adapter.write_to_file(filename)?;
+	// let toml = format!("\
+	// [layout_info]\n\
+	// num_rows = {}\n\
+	// num_cols = {}\n\
+	// layout = \"\"\"\n\
+	// {}\n\
+	// \"\"\"\n\
+	// effort_layer = \"\"\"\n\
+	// {}\n\
+	// \"\"\"\n\
+	// phalanx_layer = \"\"\"\n\
+	// {}\n\
+	// \"\"\"\n\
+	// [layout_optimizer_config]\n\
+	// valid_keycodes = []\n\
+	// num_threads = {}\n\
+	// [layout_optimizer_config.genetic_options]\n\
+	// {}\n\
+	// [layout_optimizer_config.keycode_options]\n\
+	// {}\n\
+	// [layout_optimizer_config.dataset_options]\n\
+	// {:?}\n\
+	// [layout_optimizer_config.score_options]\n\
+	// {:?}\n\
+	// ", layout_info.num_rows, layout_info.num_cols, layout_info.layout, layout_info.effort_layer, layout_info.phalanx_layer, num_threads,  genetic_options, keycode_options, dataset_options, score_options);
+	// fs::write(filename, toml).unwrap_or_else(|_| panic!("unable to write file {}", filename));
 	Ok(())
 }
 
@@ -196,4 +210,10 @@ fn get_default_dataset_options() -> DatasetOptions {
 #[tauri::command]
 fn get_default_score_options() -> ScoreOptions {
 	ScoreOptions::default()
+}
+
+#[tauri::command]
+fn check_saved_toml(filename: String) -> bool {
+	println!("checking existence of {}", filename);
+	Path::new(&filename).exists()
 }
