@@ -1,6 +1,8 @@
 <script>
-	import { split_layer_to_rows, split_row_to_columns } from "./utils.js"
+	import { split_layer_to_rows, split_row_to_columns, layer_switch_regex } from "./utils.js"
 	import { onMount } from 'svelte'
+	
+
 	
 
 	/**
@@ -43,6 +45,26 @@
 		return key;
 	}
 
+	/**@param {string} str
+	 * @param {string} from
+	 * @returns {number | null}
+	*/
+	function get_target_layer_from_string(str, from) {
+		const regex = /^LS(\d+)$/;
+		const match = str.match(regex);
+		let corresponding_layer = -1;
+		if (match) {
+			corresponding_layer = parseInt(match[1], 10);
+			return corresponding_layer
+		} else {
+			let msg = `${str} has no target layer (i.e., the X in LSX). From ${from} This is probably a developer error due to parsing.`
+			alert(msg)
+			console.error(msg);
+			return null;
+		}
+	}
+
+
 	/**@param {string} test*/
 	function resize_layout(test) {
 		console.log(`trying to resize layout with ${num_layers} layers and ${layout_size} size from ${test}`)
@@ -71,7 +93,7 @@
 				for (let i = 0; i < layout[n].length; i++) {
 					for (let j = 0; j < layout[n][i].length; j++) {
 						let k = layout[n][i][j].keycode
-						if (k.includes("LS") && num_layers < layout.length) {
+						if (layer_switch_regex.test(k) && num_layers < layout.length) {
 							const regex = /^LS(\d+)$/;
 							const match = k.match(regex);
 							let corresponding_layer = -1;
@@ -144,7 +166,8 @@
 				}
 				for (let j = 0; j < cols.length; j++) {
 					let col = cols[j]
-					if (layout[n][i][j].keycode.includes("LS")) {
+					// if the keycode at the current location is LS, skip it since it will have been placed there by its corresponding LS
+					if (layer_switch_regex.test(layout[n][i][j].keycode)) {
 						continue
 					}
 					if (col[0] == "_") {
@@ -156,12 +179,15 @@
 						let s = col.split("_")
 						let k = s[0]
 						let flags = s[1]
-						if (k.includes("LS")) {
-							let target_layer = parseInt(k[2])
-							layout[target_layer][i][j].keycode = "LS"
-							layout[target_layer][i][j].locked = !!!parseInt(flags[0])
-							layout[target_layer][i][j].symmetric = !!parseInt(flags[1])
-							k = "LS"
+						if (layer_switch_regex.test(k)) {
+							let target_layer = get_target_layer_from_string(k, "filling layout from string, trying to place corresponding LS key")
+							console.log(target_layer)
+							if (target_layer) {
+								// let target_layer = parseInt(k[2])
+								layout[target_layer][i][j].keycode = k
+								layout[target_layer][i][j].locked = !!!parseInt(flags[0])
+								layout[target_layer][i][j].symmetric = !!parseInt(flags[1])
+							}
 						}
 						layout[n][i][j].keycode = k 
 						layout[n][i][j].locked = !parseInt(flags[0])
@@ -198,21 +224,21 @@
 		let row = pos[1]
 		let col = pos[2]
 		let new_keycode = layout[layer][row][col].keycode
-		console.log(`current keycode at start ${previous_keycode}`)
+		console.log(`current keycode at beginning of set_keycode ${previous_keycode}`)
 		console.log(`new keycode ${new_keycode}`)
 		// if LS is being replaced, replace its corresponding place as well
-		if (previous_keycode.includes("LS")) {
+		if (layer_switch_regex.test(previous_keycode)) {
 			// corresponding location might be in a lower layer so check all
 			for (let n = 0; n < layout.length; n++) {
 				if (layer == n) {
 					continue
 				}
-				if (layout[n][row][col].keycode.includes("LS")) {
+				if (layer_switch_regex.test(layout[n][row][col].keycode)) {
 					layout[n][row][col].keycode = "NO"
 				}
 			}
 		}
-		if (new_keycode.includes("LS")) {
+		if (layer_switch_regex.test(new_keycode)) {
 			const regex = /^LS(\d+)$/;
 			const match = new_keycode.match(regex);
 			let corresponding_layer = -1;
@@ -229,7 +255,7 @@
 					// layout[layer][row][col].keycode = previous_keycode
 				}
 			} else {
-				let msg = `${new_keycode} has no target layer (i.e., the X in LSX). This is probably a developer error due to parsing.`
+				let msg = `${new_keycode} has no target layer (i.e., the X in LSX). From trying to use set_keycode. This is probably a developer error due to parsing.`
 				alert(msg)
 				console.error(msg);
 			}

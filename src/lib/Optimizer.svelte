@@ -7,6 +7,7 @@
 	import EffortLayer from "./EffortLayer.svelte";
 	import PhalanxLayer from './PhalanxLayer.svelte';
 	import { appWindow } from '@tauri-apps/api/window'
+	import { layer_switch_regex } from "./utils"
 
 
 	/**@type {keyof TabComponentMap}*/
@@ -110,7 +111,7 @@
 	let is_size_from_config = false
 	/** @type {number}*/
 	let selected_num_layers = 3;
-	let max_layers = 15;
+	let max_layers = 9;
 
 
 	// /**
@@ -211,8 +212,9 @@
 
 	/**
 	 * @param {Key[][]} layer
+	 * @param {number} layer_num
 	*/
-	function keycode_layer_to_string(layer) {
+	function keycode_layer_to_string(layer, layer_num) {
 		let output = ""
 		let col_inds = col_indexes_to_string(layer[0].length, true)
 		output += col_inds
@@ -221,6 +223,21 @@
 			output += `${i}|`
 			for (let j = 0; j < layer[0].length; j++) {
 				let v = layer[i][j]
+				let keycode_string = v.keycode
+				if (layer_switch_regex.test(v.keycode)) {
+					const regex = /^LS(\d+)$/;
+					const match = v.keycode.match(regex);
+					let corresponding_layer = -1;
+					if (match) {
+						corresponding_layer = parseInt(match[1], 10);
+						// we have a layer switch, but we are in the target layer for that layer switch. So, we should replace it with _
+						if (layer_num == corresponding_layer) {
+							keycode_string = "_"
+						}
+					} else {
+						console.error(`problem converting the X in LSX to a number ${v.keycode}, probably a developer parsing error`)
+					}
+				}
 				output += `${v.keycode}_${+!v.locked}${+v.symmetric}`.padStart(8)
 			}
 			output += " \n"
@@ -246,7 +263,7 @@
 		let output = ""
 		for (let n = 0; n < layout.length; n++) {
 			output += `___Layer ${n}___\n`
-			let layer = keycode_layer_to_string(layout[n])
+			let layer = keycode_layer_to_string(layout[n], n)
 			output += layer
 		}
 		return output
