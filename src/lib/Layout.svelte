@@ -26,6 +26,8 @@
 	export let layout;
 	export let keycodes;
 	export let layout_string;
+	/**@type boolean*/
+	export let is_size_from_config;
 
 	/**
 	 * @param {string} keycode
@@ -41,7 +43,9 @@
 		return key;
 	}
 
-	function resize_layout() {
+	/**@param {string} test*/
+	function resize_layout(test) {
+		console.log(`trying to resize layout with ${num_layers} layers and ${layout_size} size from ${test}`)
 		if (num_layers && layout_size) {	
 			layout = [];
 			for (let n = 0; n < num_layers; n++) {
@@ -54,9 +58,12 @@
 					}
 				}
 			}
+			console.log(`resized layout, it is ${JSON.stringify(layout)}`)
+			// console.log(`resized layout, it has ${layout.length} layers and (${layout[0].length} x ${layout[0][0].length}) size`)
 		}
 	}
 	function resize_num_layers() {
+		console.log(`trying to adjust num layers to ${num_layers}`)
 		if (num_layers) {
 			/**@type {Key[][][]}*/
 			let output = []
@@ -76,15 +83,22 @@
 				output.push(layer)
 			}
 			layout = output
+			console.log(`adjusted num layers, ${JSON.stringify(layout)}`)
 		}
 	}
-	$: layout_size, resize_layout()
+	$: {
+		layout_size 
+		if (!is_size_from_config) {
+			resize_layout("$: layout_size,...")
+		}
+	}
 	$: num_layers, resize_num_layers()
 
 
 	/**@param {string} layout_string*/
 	function fill_layout_from_string(layout_string) {
-		resize_layout()
+		resize_layout("fill_layout_from_string")
+		console.log(`trying to fill layout with ${layout_string}`)
 		let layers = layout_string.split(/___(.*)___/g)
 		layers = layers.filter((x) => x != "" && !x.includes("Layer"))
 		if (layout.length != layers.length) {
@@ -95,15 +109,15 @@
 		for (let n = 0; n < layers.length; n++) {
 			let layer = layers[n]
 			let rows = split_layer_to_rows(layer)
-			if (layout[0].length != rows.length) {
-				alert(`the number of rows in the layout (${layout[0].length}) does not match the number of rows found from the config (${rows.length}: ${rows}); this is probably a developer error due to parsing the config incorrectly`)
+			if (layout[n].length != rows.length) {
+				alert(`the number of rows in the ${n}th layer of the layout (${layout[n].length}) does not match the number of rows found from the config (${rows.length}: ${rows}); this is probably a developer error due to parsing the config incorrectly`)
 				return;
 			}
 			for (let i = 0; i < rows.length; i++) {
 				let row = rows[i]
 				let cols = split_row_to_columns(row)
-				if (layout[0][0].length != cols.length) {
-					alert(`the number of columns in the layout (${layout[0][0].length}) does not match the number of columns found from the config (${cols.length}: ${cols}); this is probably a developer error due to parsing the config incorrectly`)
+				if (layout[n][i].length != cols.length) {
+					alert(`the number of columns in the ${n}th layer, ${i}ith row of the layout (${layout[n][i].length}) does not match the number of columns found from the config (${cols.length}: ${cols}); this is probably a developer error due to parsing the config incorrectly`)
 					return;
 				}
 				for (let j = 0; j < cols.length; j++) {
@@ -134,6 +148,7 @@
 				}
 			}
 		}
+		console.log(`filled layout`)
 	}
 	$: {
 		if (layout_string) {
@@ -213,7 +228,7 @@
 	let symmetric_color = "#99ebc2"
 
 	onMount(() => {
-		resize_layout()
+		// resize_layout("from mount")
 	})
 
 </script>

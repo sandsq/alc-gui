@@ -371,13 +371,10 @@
 		get_keycodes()
 		invoke("get_config_dir").then((res) => {
 			config_dir = res
-			if (selected_size) {
-				// selected_toml_file = `${config_dir}/saved.toml`
-				// open_toml(false).then((res) => {
-				// 	console.log(JSON.stringify(layout))
-				// })
-				
-			}
+			selected_toml_file = `${config_dir}/saved.toml`
+			// open_toml(false).then((res) => {
+			// 	console.log(JSON.stringify(layout))
+			// })
 		})
 		get_default_genetic_options()
 		get_default_keycode_options()
@@ -479,7 +476,7 @@
 <div class="tab_contents">
 	<div class="layout">
 	<div class={active_tab == "tab1" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab1"]} bind:layout={layout} keycodes={keycodes} num_layers={selected_num_layers} layout_size={selected_size} layout_string={layout_string} />
+		<svelte:component this={tab_components["tab1"]} bind:layout={layout} keycodes={keycodes} num_layers={selected_num_layers} layout_size={selected_size} layout_string={layout_string} {is_size_from_config} />
 	</div>
 	<div class={active_tab == "tab2" ? "tabshow" : "tabhide"}>
 		<svelte:component this={tab_components["tab2"]} bind:effort_layer_string={effort_layer_string} bind:effort_layer={effort_layer} bind:layout_size={selected_size} />
