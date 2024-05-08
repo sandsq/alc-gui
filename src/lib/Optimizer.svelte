@@ -335,10 +335,9 @@
 			})
 		}
 	}
-	// $: {
-	// 	create_blank_layers(selected_size, "from $: selected_size, ...")
-	// 	is_size_from_config = false
-	// }
+	$: {
+		create_blank_layers(selected_size, "from $: selected_size, ...")
+	}
 
 	async function get_default_genetic_options() {
 		await invoke("get_default_genetic_options").then((res) => {
@@ -404,25 +403,32 @@
 	let config_dir = ""
 	onMount(() => {
 
-		get_sizes().then((res) => {
-			selected_size = layout_sizes[0]
-		})
-		
-		get_keycodes()
 		invoke("get_config_dir").then((res) => {
 			config_dir = res
 			selected_toml_file = `${config_dir}/saved.toml`
-			// open_toml(false).then((res) => {
-			// 	console.log(JSON.stringify(layout))
-			// })
+			invoke("does_file_exist", {filename: selected_toml_file}).then((res) => {
+				if (res) {
+					open_toml(false).then((res) => {
+						console.log(JSON.stringify(layout))
+						console.log(`size from config ${is_size_from_config}`)
+					})
+				}
+			})
+			
 		})
+		get_sizes().then((res) => {
+			selected_size = layout_sizes[0]
+		})
+		get_keycodes()
 		get_default_genetic_options()
 		get_default_keycode_options()
 		get_default_dataset_options()
 		get_default_score_options()
 
-		// console.log(`effort layer str ${effort_layer_string} phalanx layer str ${phalanx_layer_string}`)
-		// create_blank_layers()
+		
+		
+
+
 		// appWindow.once("ready", async () => {
 		// 	await create_blank_layers("app window ready")
 			// selected_size = layout_sizes[0]

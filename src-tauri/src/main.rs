@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{fs, path::PathBuf};
+use std::{fs, path::{Path, PathBuf}};
 
 use strum::IntoEnumIterator;
 use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout_presets::{get_all_layout_size_presets, get_size_variant}}, optimizer::config::{DatasetOptions, GeneticOptions, LayoutInfoTomlAdapter, LayoutOptimizerConfig, LayoutOptimizerTomlAdapter, ScoreOptions}, text_processor::keycode::{generate_default_keycode_set, Keycode, KeycodeOptions}};
@@ -33,7 +33,8 @@ fn main() {
 		get_default_keycode_options,
 		get_default_dataset_options,
 		recompute_valid_keycodes,
-		get_default_score_options,])
+		get_default_score_options,
+		does_file_exist,])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -171,4 +172,9 @@ fn get_default_dataset_options() -> DatasetOptions {
 #[tauri::command]
 fn get_default_score_options() -> ScoreOptions {
 	ScoreOptions::default()
+}
+
+#[tauri::command]
+fn does_file_exist(filename: String) -> bool {
+	Path::new(&filename).exists()
 }

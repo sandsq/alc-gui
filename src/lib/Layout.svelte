@@ -80,7 +80,7 @@
 					}
 				}
 			}
-			console.log(`resized layout, it is ${JSON.stringify(layout)}`)
+			console.log(`resized layout${num_layers} layers and ${layout_size} size from ${test}`)
 			// console.log(`resized layout, it has ${layout.length} layers and (${layout[0].length} x ${layout[0][0].length}) size`)
 		}
 	}
@@ -127,7 +127,7 @@
 				output.push(layer)
 			}
 			layout = output
-			console.log(`adjusted num layers, ${JSON.stringify(layout)}`)
+			console.log(`adjusted num layers ${num_layers}`)
 		}
 	}
 	$: {
