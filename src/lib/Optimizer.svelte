@@ -295,10 +295,10 @@
 			})
 		}
 	}
-	$: {
-		create_blank_layers(selected_size, "from $: selected_size, ...")
-		is_size_from_config = false
-	}
+	// $: {
+	// 	create_blank_layers(selected_size, "from $: selected_size, ...")
+	// 	is_size_from_config = false
+	// }
 
 	async function get_default_genetic_options() {
 		await invoke("get_default_genetic_options").then((res) => {
@@ -452,7 +452,7 @@
 	choose layout size:
 	<!-- {#await get_sizes then} -->
 	<!-- bind:value={selected_size} -->
-	<select on:change={readjust_tab_contents}>
+	<select bind:value={selected_size} on:change={readjust_tab_contents} on:change={() => {is_size_from_config = false; create_blank_layers(selected_size, "from select change")}}>
 		{#each layout_sizes as size}
 			<option value={size}>{size[0]} x {size[1]}</option>
 		{/each}
