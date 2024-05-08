@@ -60,14 +60,21 @@
 	/**@type {any}*/
 	let score_options;
 
-	async function open_toml() {
-		const opened_file = await open({
-			multiple: false,
-			filters: [{
-				name: 'toml',
-				extensions: ['toml']
-			}]
-		});
+	/**@param {boolean} show_dialog*/
+	async function open_toml(show_dialog) {
+		/**@type {string | string[] | null}*/
+		let opened_file;
+		if (show_dialog) {
+			opened_file = await open({
+				multiple: false,
+				filters: [{
+					name: 'toml',
+					extensions: ['toml']
+				}]
+			});
+		} else {
+			opened_file = selected_toml_file
+		}
 		if (opened_file !== null) {
 			invoke('process_config', {configFile: opened_file})
 				.then((res) => {
@@ -355,13 +362,19 @@
 	onMount(() => {
 
 		get_sizes().then((res) => {
-			// if I do this assignment, then the effort layer and hand assignment don't update
 			selected_size = layout_sizes[0]
 		})
 		
 		get_keycodes()
 		invoke("get_config_dir").then((res) => {
 			config_dir = res
+			if (selected_size) {
+				// selected_toml_file = `${config_dir}/saved.toml`
+				// open_toml(false).then((res) => {
+				// 	console.log(JSON.stringify(layout))
+				// })
+				
+			}
 		})
 		get_default_genetic_options()
 		get_default_keycode_options()
@@ -431,7 +444,7 @@
 
 <h1>Layout section</h1>
 <div>
-	<button on:click={open_toml}>Load config</button>
+	<button on:click={() => open_toml(true)}>Load config</button>
 	or
 	choose layout size:
 	<!-- {#await get_sizes then} -->
@@ -503,7 +516,11 @@
 	{#if dataset_options}
 	<h3>Dataset options</h3>
 	{#each Object.entries(dataset_options) as [key, value]}
+	{#if key == "dataset_paths"}
+		<div style="width: 400px; word-wrap: normal;"><span>{key} = {value.join(", ")}</span></div>
+	{:else}
 		<span>{key} = {value}</span> <br>
+	{/if}
 	{/each}
 	{/if}
 

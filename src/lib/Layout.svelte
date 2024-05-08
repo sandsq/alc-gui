@@ -1,6 +1,5 @@
 <script>
 	import { split_layer_to_rows, split_row_to_columns } from "./utils.js"
-	import { getContext } from "svelte"
 	import { onMount } from 'svelte'
 	
 
@@ -341,9 +340,6 @@
 	}
 	.locked button:hover {
 		background-color: $yellow_light;
-	}
-	.unlocked button {
-		
 	}
 	.symmetric button {
 		background-color: $aqua_light;

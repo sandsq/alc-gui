@@ -4,7 +4,7 @@
 use std::{fs, path::PathBuf};
 
 use strum::IntoEnumIterator;
-use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout::Layout, layout_presets::{get_all_layout_size_presets, get_size_variant}}, optimizer::{config::{DatasetOptions, GeneticOptions, LayoutInfoTomlAdapter, LayoutOptimizerConfig, LayoutOptimizerTomlAdapter, ScoreOptions}, optimize_from_toml, LayoutOptimizer}, text_processor::keycode::{generate_default_keycode_set, Keycode, KeycodeOptions}};
+use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout_presets::{get_all_layout_size_presets, get_size_variant}}, optimizer::config::{DatasetOptions, GeneticOptions, LayoutInfoTomlAdapter, LayoutOptimizerConfig, LayoutOptimizerTomlAdapter, ScoreOptions}, text_processor::keycode::{generate_default_keycode_set, Keycode, KeycodeOptions}};
 use alc::keyboard::layout_presets::LayoutSizePresets::*;
 use tauri::{api::path::config_dir, Manager};
 
@@ -61,22 +61,10 @@ fn get_all_keycodes() -> Vec<String> {
 		.collect()
 }
 
-// define the payload struct
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-struct Payload {
-    message: String,
-	pass: bool,
-}
-impl Payload {
-	fn new(message: String, pass: bool) -> Self {
-		Payload { message, pass }
-	}
-}
-
 #[tauri::command]
-fn process_config(app_handle: tauri::AppHandle, config_file: String) -> Result<LayoutOptimizerTomlAdapter, AlcError> {
+fn process_config(_app_handle: tauri::AppHandle, config_file: String) -> Result<LayoutOptimizerTomlAdapter, AlcError> {
 // Result<LayoutOptimizerTomlAdapter, AlcError> {
-	println!("received {} as the config file", config_file);
+	println!("received {} as the config file to process", config_file);
 	let lo = LayoutOptimizerTomlAdapter::try_from_toml_file(config_file.as_str())?;
 	// {
 	// 	Ok(v) => v,
@@ -88,7 +76,7 @@ fn process_config(app_handle: tauri::AppHandle, config_file: String) -> Result<L
 	// };
 	let r = lo.layout_info.num_rows;
 	let c = lo.layout_info.num_cols;
-	let size_variant = get_size_variant((lo.layout_info.num_rows, lo.layout_info.num_cols))?;
+	let _size_variant = get_size_variant((r, c))?;
 	// {
 	// 	Ok(v) => v,
 	// 	Err(e) => {
