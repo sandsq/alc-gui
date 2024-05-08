@@ -68,8 +68,30 @@
 			/**@type {Key[][][]}*/
 			let output = []
 			for (let n = 0; n < Math.min(layout.length, num_layers); n++) {
+				for (let i = 0; i < layout[n].length; i++) {
+					for (let j = 0; j < layout[n][i].length; j++) {
+						let k = layout[n][i][j].keycode
+						if (k.includes("LS") && num_layers < layout.length) {
+							const regex = /^LS(\d+)$/;
+							const match = k.match(regex);
+							let corresponding_layer = -1;
+							if (match) {
+								corresponding_layer = parseInt(match[1], 10);
+								layout[n][i][j].keycode = "NO"
+								layout[corresponding_layer][i][j].keycode = "NO"
+							} else {
+								let msg = `${k} has no target layer (i.e., the X in LSX). This is probably a developer error due to parsing.`
+								alert(msg)
+								console.error(msg);
+							}
+						}
+					}
+				}
 				output.push(layout[n])
 			}
+			// for (let n = 0; n < Math.min(layout.length, num_layers); n++) {
+			// 	output.push(layout[n])
+			// }
 			while (output.length < num_layers) {
 				/**@type {Key[][]}*/
 				let layer = []
