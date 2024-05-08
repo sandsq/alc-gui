@@ -7,6 +7,7 @@
 	import EffortLayer from "./EffortLayer.svelte";
 	import PhalanxLayer from './PhalanxLayer.svelte';
 	import { appWindow } from '@tauri-apps/api/window'
+	import { layer_switch_regex } from "./utils"
 
 
 	/**@type {keyof TabComponentMap}*/
@@ -60,14 +61,21 @@
 	/**@type {any}*/
 	let score_options;
 
-	async function open_toml() {
-		const opened_file = await open({
-			multiple: false,
-			filters: [{
-				name: 'toml',
-				extensions: ['toml']
-			}]
-		});
+	/**@param {boolean} show_dialog*/
+	async function open_toml(show_dialog) {
+		/**@type {string | string[] | null}*/
+		let opened_file;
+		if (show_dialog) {
+			opened_file = await open({
+				multiple: false,
+				filters: [{
+					name: 'toml',
+					extensions: ['toml']
+				}]
+			});
+		} else {
+			opened_file = selected_toml_file
+		}
 		if (opened_file !== null) {
 			invoke('process_config', {configFile: opened_file})
 				.then((res) => {
@@ -103,7 +111,7 @@
 	let is_size_from_config = false
 	/** @type {number}*/
 	let selected_num_layers = 3;
-	let max_layers = 15;
+	let max_layers = 9;
 
 
 	// /**
@@ -145,6 +153,17 @@
 	}
 	async function get_keycodes() {
 		keycodes = await invoke('get_all_keycodes')
+		keycodes = keycodes.filter(x => x != "LS" && x != "LST")
+	}
+	$: {
+		selected_num_layers
+		keycodes = keycodes.filter(str => {
+			const regex = /^LS\d+$/;
+			return !regex.test(str);
+		});
+		for (let n = 0; n < selected_num_layers; n++) {
+			keycodes.push(`LS${n}`)
+		}
 	}
 
 	// let active_tab_color = "#FBF1C7"
@@ -193,8 +212,9 @@
 
 	/**
 	 * @param {Key[][]} layer
+	 * @param {number} layer_num
 	*/
-	function keycode_layer_to_string(layer) {
+	function keycode_layer_to_string(layer, layer_num) {
 		let output = ""
 		let col_inds = col_indexes_to_string(layer[0].length, true)
 		output += col_inds
@@ -203,6 +223,21 @@
 			output += `${i}|`
 			for (let j = 0; j < layer[0].length; j++) {
 				let v = layer[i][j]
+				let keycode_string = v.keycode
+				if (layer_switch_regex.test(v.keycode)) {
+					const regex = /^LS(\d+)$/;
+					const match = v.keycode.match(regex);
+					let corresponding_layer = -1;
+					if (match) {
+						corresponding_layer = parseInt(match[1], 10);
+						// we have a layer switch, but we are in the target layer for that layer switch. So, we should replace it with _
+						if (layer_num == corresponding_layer) {
+							keycode_string = "_"
+						}
+					} else {
+						console.error(`problem converting the X in LSX to a number ${v.keycode}, probably a developer parsing error`)
+					}
+				}
 				output += `${v.keycode}_${+!v.locked}${+v.symmetric}`.padStart(8)
 			}
 			output += " \n"
@@ -213,10 +248,22 @@
 
 	/**@param {Key[][][]} layout*/
 	function layout_to_string(layout) {
+		// for (let n = 0; n < layout.length; n++) {
+		// 	let layer = layout[n]
+		// 	for (let i = 0; i < layer.length; i++) {
+		// 		let row = layer[i]
+		// 		for (let j = 0; j < row.length; j++) {
+		// 			let col = row[j]
+		// 			if (col.keycode == "LS") {
+
+		// 			}
+		// 		}
+		// 	}
+		// }
 		let output = ""
 		for (let n = 0; n < layout.length; n++) {
 			output += `___Layer ${n}___\n`
-			let layer = keycode_layer_to_string(layout[n])
+			let layer = keycode_layer_to_string(layout[n], n)
 			output += layer
 		}
 		return output
@@ -265,7 +312,7 @@
 			score_string += `${prop} = ${val}\n`
 		}
 		try {
-			await invoke('write_toml', {filename: `${config_dir}/layout_info.toml`, numThreads: num_threads, layoutInfo: li, geneticOptions: gen_string, keycodeOptions: keycode_string, datasetOptions: dataset_options, scoreOptions: score_options})
+			await invoke('write_toml', {filename: `${config_dir}/saved.toml`, numThreads: num_threads, layoutInfo: li, geneticOptions: genetic_options, keycodeOptions: keycode_options, datasetOptions: dataset_options, scoreOptions: score_options})
 		} catch (e) {
 			alert(e)
 		}
@@ -278,7 +325,7 @@
 	 * @param {string} test*/
 	async function create_blank_layers(size, test) {
 		if (size && !is_size_from_config) {
-			console.log(test)
+			console.log(`creating blank layers ${test}`)
 			await invoke('create_blank_layers', {r: size[0], c: size[1], loc: test}).then((res) => {
 				effort_layer_string = res[0]
 				phalanx_layer_string = res[1]
@@ -288,7 +335,9 @@
 			})
 		}
 	}
-	$: selected_size, create_blank_layers(selected_size, "from $: selected_size, ..."), is_size_from_config = false
+	$: {
+		create_blank_layers(selected_size, "from $: selected_size, ...")
+	}
 
 	async function get_default_genetic_options() {
 		await invoke("get_default_genetic_options").then((res) => {
@@ -354,22 +403,32 @@
 	let config_dir = ""
 	onMount(() => {
 
-		get_sizes().then((res) => {
-			// if I do this assignment, then the effort layer and hand assignment don't update
-			selected_size = layout_sizes[0]
-		})
-		
-		get_keycodes()
 		invoke("get_config_dir").then((res) => {
 			config_dir = res
+			selected_toml_file = `${config_dir}/saved.toml`
+			invoke("does_file_exist", {filename: selected_toml_file}).then((res) => {
+				if (res) {
+					open_toml(false).then((res) => {
+						console.log(JSON.stringify(layout))
+						console.log(`size from config ${is_size_from_config}`)
+					})
+				}
+			})
+			
 		})
+		get_sizes().then((res) => {
+			selected_size = layout_sizes[0]
+		})
+		get_keycodes()
 		get_default_genetic_options()
 		get_default_keycode_options()
 		get_default_dataset_options()
 		get_default_score_options()
 
-		// console.log(`effort layer str ${effort_layer_string} phalanx layer str ${phalanx_layer_string}`)
-		// create_blank_layers()
+		
+		
+
+
 		// appWindow.once("ready", async () => {
 		// 	await create_blank_layers("app window ready")
 			// selected_size = layout_sizes[0]
@@ -431,11 +490,12 @@
 
 <h1>Layout section</h1>
 <div>
-	<button on:click={open_toml}>Load config</button>
+	<button on:click={() => open_toml(true)}>Load config</button>
 	or
 	choose layout size:
 	<!-- {#await get_sizes then} -->
-	<select bind:value={selected_size} on:change={readjust_tab_contents}>
+	<!-- bind:value={selected_size} -->
+	<select bind:value={selected_size} on:change={readjust_tab_contents} on:change={() => {is_size_from_config = false; create_blank_layers(selected_size, "from select change")}}>
 		{#each layout_sizes as size}
 			<option value={size}>{size[0]} x {size[1]}</option>
 		{/each}
@@ -462,7 +522,7 @@
 <div class="tab_contents">
 	<div class="layout">
 	<div class={active_tab == "tab1" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab1"]} bind:layout={layout} bind:keycodes={keycodes} bind:num_layers={selected_num_layers} bind:layout_size={selected_size} bind:layout_string={layout_string} />
+		<svelte:component this={tab_components["tab1"]} bind:layout={layout} bind:keycodes={keycodes} num_layers={selected_num_layers} layout_size={selected_size} layout_string={layout_string} {is_size_from_config} />
 	</div>
 	<div class={active_tab == "tab2" ? "tabshow" : "tabhide"}>
 		<svelte:component this={tab_components["tab2"]} bind:effort_layer_string={effort_layer_string} bind:effort_layer={effort_layer} bind:layout_size={selected_size} />
@@ -503,7 +563,11 @@
 	{#if dataset_options}
 	<h3>Dataset options</h3>
 	{#each Object.entries(dataset_options) as [key, value]}
+	{#if key == "dataset_paths"}
+		<div style="width: 400px; word-wrap: normal;"><span>{key} = {value.join(", ")}</span></div>
+	{:else}
 		<span>{key} = {value}</span> <br>
+	{/if}
 	{/each}
 	{/if}
 

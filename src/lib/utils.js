@@ -1,3 +1,4 @@
+export const layer_switch_regex = /^LS\d+$/;
 
 
 /**@param {string} str*/

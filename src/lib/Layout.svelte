@@ -1,7 +1,8 @@
 <script>
-	import { split_layer_to_rows, split_row_to_columns } from "./utils.js"
-	import { getContext } from "svelte"
+	import { split_layer_to_rows, split_row_to_columns, layer_switch_regex } from "./utils.js"
 	import { onMount } from 'svelte'
+	
+
 	
 
 	/**
@@ -27,6 +28,8 @@
 	export let layout;
 	export let keycodes;
 	export let layout_string;
+	/**@type boolean*/
+	export let is_size_from_config;
 
 	/**
 	 * @param {string} keycode
@@ -42,7 +45,29 @@
 		return key;
 	}
 
-	function resize_layout() {
+	/**@param {string} str
+	 * @param {string} from
+	 * @returns {number | null}
+	*/
+	function get_target_layer_from_string(str, from) {
+		const regex = /^LS(\d+)$/;
+		const match = str.match(regex);
+		let corresponding_layer = -1;
+		if (match) {
+			corresponding_layer = parseInt(match[1], 10);
+			return corresponding_layer
+		} else {
+			let msg = `${str} has no target layer (i.e., the X in LSX). From ${from} This is probably a developer error due to parsing.`
+			alert(msg)
+			console.error(msg);
+			return null;
+		}
+	}
+
+
+	/**@param {string} test*/
+	function resize_layout(test) {
+		console.log(`trying to resize layout with ${num_layers} layers and ${layout_size} size from ${test}`)
 		if (num_layers && layout_size) {	
 			layout = [];
 			for (let n = 0; n < num_layers; n++) {
@@ -55,15 +80,40 @@
 					}
 				}
 			}
+			console.log(`resized layout${num_layers} layers and ${layout_size} size from ${test}`)
+			// console.log(`resized layout, it has ${layout.length} layers and (${layout[0].length} x ${layout[0][0].length}) size`)
 		}
 	}
 	function resize_num_layers() {
+		console.log(`trying to adjust num layers to ${num_layers}`)
 		if (num_layers) {
 			/**@type {Key[][][]}*/
 			let output = []
 			for (let n = 0; n < Math.min(layout.length, num_layers); n++) {
+				for (let i = 0; i < layout[n].length; i++) {
+					for (let j = 0; j < layout[n][i].length; j++) {
+						let k = layout[n][i][j].keycode
+						if (layer_switch_regex.test(k) && num_layers < layout.length) {
+							const regex = /^LS(\d+)$/;
+							const match = k.match(regex);
+							let corresponding_layer = -1;
+							if (match) {
+								corresponding_layer = parseInt(match[1], 10);
+								layout[n][i][j].keycode = "NO"
+								layout[corresponding_layer][i][j].keycode = "NO"
+							} else {
+								let msg = `${k} has no target layer (i.e., the X in LSX). This is probably a developer error due to parsing.`
+								alert(msg)
+								console.error(msg);
+							}
+						}
+					}
+				}
 				output.push(layout[n])
 			}
+			// for (let n = 0; n < Math.min(layout.length, num_layers); n++) {
+			// 	output.push(layout[n])
+			// }
 			while (output.length < num_layers) {
 				/**@type {Key[][]}*/
 				let layer = []
@@ -77,15 +127,22 @@
 				output.push(layer)
 			}
 			layout = output
+			console.log(`adjusted num layers ${num_layers}`)
 		}
 	}
-	$: layout_size, resize_layout()
+	$: {
+		layout_size 
+		if (!is_size_from_config) {
+			resize_layout("$: layout_size,...")
+		}
+	}
 	$: num_layers, resize_num_layers()
 
 
 	/**@param {string} layout_string*/
 	function fill_layout_from_string(layout_string) {
-		resize_layout()
+		resize_layout("fill_layout_from_string")
+		console.log(`trying to fill layout with ${layout_string}`)
 		let layers = layout_string.split(/___(.*)___/g)
 		layers = layers.filter((x) => x != "" && !x.includes("Layer"))
 		if (layout.length != layers.length) {
@@ -96,20 +153,21 @@
 		for (let n = 0; n < layers.length; n++) {
 			let layer = layers[n]
 			let rows = split_layer_to_rows(layer)
-			if (layout[0].length != rows.length) {
-				alert(`the number of rows in the layout (${layout[0].length}) does not match the number of rows found from the config (${rows.length}: ${rows}); this is probably a developer error due to parsing the config incorrectly`)
+			if (layout[n].length != rows.length) {
+				alert(`the number of rows in the ${n}th layer of the layout (${layout[n].length}) does not match the number of rows found from the config (${rows.length}: ${rows}); this is probably a developer error due to parsing the config incorrectly`)
 				return;
 			}
 			for (let i = 0; i < rows.length; i++) {
 				let row = rows[i]
 				let cols = split_row_to_columns(row)
-				if (layout[0][0].length != cols.length) {
-					alert(`the number of columns in the layout (${layout[0][0].length}) does not match the number of columns found from the config (${cols.length}: ${cols}); this is probably a developer error due to parsing the config incorrectly`)
+				if (layout[n][i].length != cols.length) {
+					alert(`the number of columns in the ${n}th layer, ${i}ith row of the layout (${layout[n][i].length}) does not match the number of columns found from the config (${cols.length}: ${cols}); this is probably a developer error due to parsing the config incorrectly`)
 					return;
 				}
 				for (let j = 0; j < cols.length; j++) {
 					let col = cols[j]
-					if (layout[n][i][j].keycode.includes("LS")) {
+					// if the keycode at the current location is LS, skip it since it will have been placed there by its corresponding LS
+					if (layer_switch_regex.test(layout[n][i][j].keycode)) {
 						continue
 					}
 					if (col[0] == "_") {
@@ -121,12 +179,15 @@
 						let s = col.split("_")
 						let k = s[0]
 						let flags = s[1]
-						if (k.includes("LS")) {
-							let target_layer = parseInt(k[2])
-							layout[target_layer][i][j].keycode = "LS"
-							layout[target_layer][i][j].locked = !!!parseInt(flags[0])
-							layout[target_layer][i][j].symmetric = !!parseInt(flags[1])
-							k = "LS"
+						if (layer_switch_regex.test(k)) {
+							let target_layer = get_target_layer_from_string(k, "filling layout from string, trying to place corresponding LS key")
+							console.log(target_layer)
+							if (target_layer) {
+								// let target_layer = parseInt(k[2])
+								layout[target_layer][i][j].keycode = k
+								layout[target_layer][i][j].locked = !!!parseInt(flags[0])
+								layout[target_layer][i][j].symmetric = !!parseInt(flags[1])
+							}
 						}
 						layout[n][i][j].keycode = k 
 						layout[n][i][j].locked = !parseInt(flags[0])
@@ -135,6 +196,7 @@
 				}
 			}
 		}
+		console.log(`filled layout`)
 	}
 	$: {
 		if (layout_string) {
@@ -162,24 +224,26 @@
 		let row = pos[1]
 		let col = pos[2]
 		let new_keycode = layout[layer][row][col].keycode
-		console.log(`current keycode at start ${previous_keycode}`)
+		console.log(`current keycode at beginning of set_keycode ${previous_keycode}`)
 		console.log(`new keycode ${new_keycode}`)
 		// if LS is being replaced, replace its corresponding place as well
-		if (previous_keycode == "LS") {
+		if (layer_switch_regex.test(previous_keycode)) {
+			// corresponding location might be in a lower layer so check all
 			for (let n = 0; n < layout.length; n++) {
 				if (layer == n) {
 					continue
 				}
-				if (layout[n][row][col].keycode == "LS") {
+				if (layer_switch_regex.test(layout[n][row][col].keycode)) {
 					layout[n][row][col].keycode = "NO"
 				}
 			}
 		}
-		// if the key is being replaced with LS, specify the corresponding layer
-		if (new_keycode == "LS" && from_select) {
-			let corresponding_layer_string = prompt(`specify corresponding layer (${0}-${layout.length - 1}):`)
-			if (corresponding_layer_string && Number.isInteger(parseInt(corresponding_layer_string))) {
-				let corresponding_layer = parseInt(corresponding_layer_string)
+		if (layer_switch_regex.test(new_keycode)) {
+			const regex = /^LS(\d+)$/;
+			const match = new_keycode.match(regex);
+			let corresponding_layer = -1;
+			if (match) {
+				corresponding_layer = parseInt(match[1], 10);
 				if (layout[corresponding_layer][row][col].locked) {
 					alert("can't assign corresponding layer switch to this position as it is occupied by a locked key")
 					layout[layer][row][col].keycode = previous_keycode
@@ -187,11 +251,32 @@
 					alert("can't assign corresponding layer switch to this position as it is occupied by a symmetric key")
 					layout[layer][row][col].keycode = previous_keycode
 				} else {
-					layout[corresponding_layer][row][col].keycode = "LS"
+					layout[corresponding_layer][row][col].keycode = new_keycode
 					// layout[layer][row][col].keycode = previous_keycode
 				}
+			} else {
+				let msg = `${new_keycode} has no target layer (i.e., the X in LSX). From trying to use set_keycode. This is probably a developer error due to parsing.`
+				alert(msg)
+				console.error(msg);
 			}
 		}
+		// // if the key is being replaced with LS, specify the corresponding layer
+		// if (new_keycode == "LS" && from_select) {
+		// 	let corresponding_layer_string = prompt(`specify corresponding layer (${0}-${layout.length - 1}):`)
+		// 	if (corresponding_layer_string && Number.isInteger(parseInt(corresponding_layer_string))) {
+		// 		let corresponding_layer = parseInt(corresponding_layer_string)
+		// 		if (layout[corresponding_layer][row][col].locked) {
+		// 			alert("can't assign corresponding layer switch to this position as it is occupied by a locked key")
+		// 			layout[layer][row][col].keycode = previous_keycode
+		// 		} else if (layout[corresponding_layer][row][col].symmetric) {
+		// 			alert("can't assign corresponding layer switch to this position as it is occupied by a symmetric key")
+		// 			layout[layer][row][col].keycode = previous_keycode
+		// 		} else {
+		// 			layout[corresponding_layer][row][col].keycode = "LS"
+		// 			// layout[layer][row][col].keycode = previous_keycode
+		// 		}
+		// 	}
+		// }
 		
 	}
 	
@@ -214,7 +299,7 @@
 	let symmetric_color = "#99ebc2"
 
 	onMount(() => {
-		resize_layout()
+		// resize_layout("from mount")
 	})
 
 </script>
@@ -341,9 +426,6 @@
 	}
 	.locked button:hover {
 		background-color: $yellow_light;
-	}
-	.unlocked button {
-		
 	}
 	.symmetric button {
 		background-color: $aqua_light;
