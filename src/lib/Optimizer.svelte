@@ -285,7 +285,7 @@
 	 * @param {string} test*/
 	async function create_blank_layers(size, test) {
 		if (size && !is_size_from_config) {
-			console.log(test)
+			console.log(`creating blank layers ${test}`)
 			await invoke('create_blank_layers', {r: size[0], c: size[1], loc: test}).then((res) => {
 				effort_layer_string = res[0]
 				phalanx_layer_string = res[1]
@@ -295,7 +295,10 @@
 			})
 		}
 	}
-	$: selected_size, create_blank_layers(selected_size, "from $: selected_size, ..."), is_size_from_config = false
+	$: {
+		create_blank_layers(selected_size, "from $: selected_size, ...")
+		is_size_from_config = false
+	}
 
 	async function get_default_genetic_options() {
 		await invoke("get_default_genetic_options").then((res) => {
@@ -448,7 +451,8 @@
 	or
 	choose layout size:
 	<!-- {#await get_sizes then} -->
-	<select bind:value={selected_size} on:change={readjust_tab_contents}>
+	<!-- bind:value={selected_size} -->
+	<select on:change={readjust_tab_contents}>
 		{#each layout_sizes as size}
 			<option value={size}>{size[0]} x {size[1]}</option>
 		{/each}
@@ -475,7 +479,7 @@
 <div class="tab_contents">
 	<div class="layout">
 	<div class={active_tab == "tab1" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab1"]} bind:layout={layout} bind:keycodes={keycodes} bind:num_layers={selected_num_layers} bind:layout_size={selected_size} bind:layout_string={layout_string} />
+		<svelte:component this={tab_components["tab1"]} bind:layout={layout} keycodes={keycodes} num_layers={selected_num_layers} layout_size={selected_size} layout_string={layout_string} />
 	</div>
 	<div class={active_tab == "tab2" ? "tabshow" : "tabhide"}>
 		<svelte:component this={tab_components["tab2"]} bind:effort_layer_string={effort_layer_string} bind:effort_layer={effort_layer} bind:layout_size={selected_size} />
