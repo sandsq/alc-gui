@@ -365,7 +365,7 @@
 		})
 	}
 	async function recompute_valid_keycodes() {
-		console.log(`explicit inclusions ${keycode_options.explicit_inclusions}`)
+		// console.log(`explicit inclusions ${keycode_options.explicit_inclusions}`)
 		await invoke("recompute_valid_keycodes", {options: keycode_options}).then((res) => {
 			valid_keycodes = res
 			keycode_display = valid_keycodes
@@ -414,11 +414,18 @@
 	/**@type {string[]} */
 	let keycode_display = [];
 
+	$: {
+		if (keycode_options) {
+			keycode_options.explicit_inclusions, recompute_valid_keycodes()
+		}
+	}
+
 	function add_explicit_inclusion() {
 		if (keycode_options) {
 			console.log("adding inclusion option")
 			keycode_options.explicit_inclusions.push("_NO")
 			keycode_options.explicit_inclusions = keycode_options.explicit_inclusions
+			recompute_valid_keycodes()
 		}
 	}
 	/**@param {number} ind */
@@ -427,6 +434,7 @@
 			console.log("removing inclusion option")
 			keycode_options.explicit_inclusions.splice(ind, 1)
 			keycode_options.explicit_inclusions = keycode_options.explicit_inclusions
+			recompute_valid_keycodes()
 		}
 	}
 	
@@ -642,18 +650,17 @@
 			<!-- {key}: <input type="checkbox" bind:checked={keycode_options[key]} on:change={recompute_valid_keycodes} /> <br> -->
 		{:else}
 
-		{#key keycode_options.explicit_inclusions}
+		<!-- {#key keycode_options.explicit_inclusions} -->
 			{#each keycode_options.explicit_inclusions as code, ei_ind}
-			<select bind:value={code} on:change={recompute_valid_keycodes}>
+			<select bind:value={keycode_options.explicit_inclusions[ei_ind]} on:change={recompute_valid_keycodes}>
 				{#each all_keycodes as keycode}
 					<option value="_{keycode}">{keycode == "NO" ? "" : keycode}</option>
 				{/each}
-			</select>
-			<button on:click={() => remove_explicit_inclusion(ei_ind)}>x</button>
+			</select><button on:click={() => remove_explicit_inclusion(ei_ind)}>x</button>
 			{/each}
-			<button on:click={add_explicit_inclusion}>+</button>
-			<!-- <textarea bind:value={explicit_inclusion_string} on:input={validate_and_update_explicit_inclusions} /> -->
-			{/key}
+
+			<button class="plus_button" on:click={add_explicit_inclusion}>+</button>
+		<!-- {/key} -->
 		{/if}
 		</td>
 	</tr>
@@ -668,7 +675,9 @@
 		<td>{key}</td>
 		<td>
 		{#if key == "dataset_paths"}
-			<textarea bind:value={keycode_options[key]} />
+			{#each dataset_options["dataset_paths"] as dir, d_ind}
+				<input type="text" bind:value={dir} /><button>Browse</button>
+			{/each}
 		{:else}
 			{value}
 		{/if}
@@ -785,6 +794,13 @@
 		border-right: none;
 		border-left: none;
 		box-shadow: 3px 0 $text, -3px 0px $text;
+	}
+
+	.x_button {
+		display: inline-block;
+		font-size: 14px;
+		width: 18px;
+		height: 22px;
 	}
 
 	.switch {
