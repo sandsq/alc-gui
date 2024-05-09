@@ -282,8 +282,11 @@
 	* @property {string} phalanx_layer
 	*/
 
-	/**@param {boolean} show_saving_dialog*/
-	async function write_toml(show_saving_dialog) {
+	/**@param {boolean} show_saving_dialog
+	 * @param {boolean} should_autosave
+	*/
+
+	async function write_toml(show_saving_dialog, should_autosave) {
 
 		/**@type {string | null}*/
 		let save_path;
@@ -293,10 +296,13 @@
 					name: 'toml',
 					extensions: ['toml'],
 				}],
-				defaultPath: config_dir
+				defaultPath: `${config_dir}hello.toml`
 			});
 		} else {
-			save_path = `${config_dir}/saved.toml`
+			save_path = `${config_dir}/autosave.toml`
+		}
+		if (should_autosave) {
+			save_path = `${config_dir}/autosave.toml`
 		}
 
 		/**@type LayoutInfo*/
@@ -308,7 +314,10 @@
 			phalanx_layer: layer_to_string(phalanx_layer)
 		}
 		try {
-			await invoke('write_toml', {filename: save_path, numThreads: num_threads, layoutInfo: li, geneticOptions: genetic_options, keycodeOptions: keycode_options, datasetOptions: dataset_options, scoreOptions: score_options})
+			if (save_path) {
+				await invoke('write_toml', {filename: save_path, numThreads: num_threads, layoutInfo: li, geneticOptions: genetic_options, keycodeOptions: keycode_options, datasetOptions: dataset_options, scoreOptions: score_options})
+			}
+			
 			
 		} catch (e) {
 			alert(e)
@@ -406,7 +415,7 @@
 
 		invoke("get_config_dir").then((res) => {
 			config_dir = res
-			selected_toml_file = `${config_dir}/saved.toml`
+			selected_toml_file = `${config_dir}/autosave.toml`
 			invoke("does_file_exist", {filename: selected_toml_file}).then((res) => {
 				if (res) {
 					open_toml(false).then((res) => {
@@ -427,7 +436,7 @@
 		get_default_score_options()
 
 
- 	 	save_interval_timer = setInterval(() => write_toml(false), 10000);
+ 	 	save_interval_timer = setInterval(() => write_toml(false, true), 10000);
 		// appWindow.once("ready", async () => {
 		// 	await create_blank_layers("app window ready")
 			// selected_size = layout_sizes[0]
@@ -508,8 +517,8 @@
 </div>
 
 <p>Config dir: <input type="text" bind:value={config_dir} />
-<button on:click={() => write_toml(true)}>Save as</button></p>
-<p>saved status: {saved}</p>
+<button on:click={() => write_toml(true, false)}>Save as</button></p>
+<p>autosaved status: {saved}</p>
 
 <h1>Layout section</h1>
 <div>
