@@ -674,12 +674,16 @@
 	<tr>
 		<td>{key}</td>
 		<td>
+		
 		{#if key == "dataset_paths"}
+		<div style="width: 400px; word-wrap: break-word;">
 			{#each dataset_options["dataset_paths"] as dir, d_ind}
-				<input type="text" bind:value={dir} /><button>Browse</button>
+				{dir}<button>Browse</button>
 			{/each}
+		</div>
 		{:else}
-			{value}
+	
+		{value}
 		{/if}
 		</td>
 	</tr>
@@ -687,9 +691,12 @@
 	{/if}
 
 	{#if score_options}
-	<h3>Scoring options</h3>
+	<tr><th>Scoring options</th></tr>
 	{#each Object.entries(score_options) as [key, value]}
-		<span>{key} = {value}</span> <br>
+	<tr>
+		<td>{key}</td>
+		<td>{value}
+	</tr>
 	{/each}
 	{/if}
 	
