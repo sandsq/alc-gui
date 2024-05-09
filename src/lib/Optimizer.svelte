@@ -512,6 +512,11 @@
 			saved = false;
 		}
 	}
+
+	async function run_optimizer() {
+		await write_toml(false, true)
+		await invoke("run_optimizer", {filename: `${config_dir}/autosave.toml`})
+	}
 </script>
 
 <div class="debug">
@@ -568,7 +573,7 @@
 	<button on:click={() => write_toml(true, false)}>Save as</button>
 </p>
 <p>autosaved status: {saved}</p>
-
+<button on:click={run_optimizer}>Optimize!</button>
 <h1>Layout section</h1>
 <div>
 	<button on:click={() => open_toml(true)}>Load config</button>
