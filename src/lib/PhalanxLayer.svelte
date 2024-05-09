@@ -130,10 +130,10 @@
 
 <style lang="scss">
 	@use "../styles/colors.scss" as *;
-	table {
-		border-spacing: 5px;
-		margin-bottom: 20px;
-	}
+	// table {
+	// 	border-spacing: 5px;
+	// 	margin-bottom: 20px;
+	// }
 	.phalanx_key {
 		width: $key_dimension;
 		height: $key_dimension;
@@ -144,7 +144,7 @@
 		font-size: 24px;
 		padding: $key_padding;
 		padding-right: $key_padding + 2px;
-		box-shadow: 5px 5px $blue_dark1;
+		box-shadow: $key_shadow_offset $key_shadow_offset $blue_dark1;
 	}
 	.phalanx_key select {
 		font-size: 12px;

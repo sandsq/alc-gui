@@ -181,7 +181,6 @@
 						let flags = s[1]
 						if (layer_switch_regex.test(k)) {
 							let target_layer = get_target_layer_from_string(k, "filling layout from string, trying to place corresponding LS key")
-							console.log(target_layer)
 							if (target_layer) {
 								// let target_layer = parseInt(k[2])
 								layout[target_layer][i][j].keycode = k
@@ -373,10 +372,10 @@
 	:global(*) {
 		color: $text;
 	}
-	table {
-		border-spacing: 4px;
-		margin-bottom: 20px;
-	}
+	// table {
+	// 	border-spacing: 4px;
+	// 	margin-bottom: 20px;
+	// }
 	.column_indexes {
 		padding-bottom: 5px;
 	}
@@ -388,10 +387,8 @@
 		font-size: 16px;
 		text-align: center;
 		padding: $key_padding;
-		box-shadow: 4px 4px $blue_dark2;
-	}
-	.keyoffset {
 		padding-right: $key_padding + 2px;
+		box-shadow: $key_shadow_offset $key_shadow_offset $blue_dark2;
 	}
 	.no_keycode {
 		background-color: $background3; 
@@ -400,14 +397,16 @@
 	.has_keycode {
 		background-color: $background1;
 		border: 3px solid $background3;
-		box-shadow: 4px 4px $blue_dark1;
+		// box-shadow: 4px 4px $blue_dark1;
 	}
 	.has_keycode select {
 		background-color: $background;
-		border: 3px solid $purple_light;
+		border: 4px solid $purple_light;
+		margin-left: -2px;
+		margin-top: -1px;
 	}
 	.key_locked {
-		background-color: $red_light;
+		background-color: $yellow_light;
 	}
 	.key_symmetric {
 		background-color: $aqua_light;
@@ -428,10 +427,10 @@
 		background-color: $background;
 	}
 	.locked button {
-		background-color: $red_dark;
+		background-color: $yellow_dark;
 	}
 	.locked button:hover {
-		background-color: $red_light;
+		background-color: $yellow_light;
 	}
 	.symmetric button {
 		background-color: $aqua_dark;

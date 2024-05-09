@@ -84,11 +84,12 @@
 
 <style lang="scss">
 	@use "../styles/colors.scss" as *;
-	table {
-		border-spacing: 5px;
-		margin-bottom: 20px;
-	}
+	// table {
+	// 	border-spacing: 5px;
+	// 	margin-bottom: 20px;
+	// }
 	.effort_key input {
+		
 		width: $key_dimension;
 		height: $key_dimension;
 		background: $background0_h;
@@ -99,7 +100,7 @@
 		text-align: center;
 		padding: $key_padding;
 		padding-right: $key_padding + 2px;
-		box-shadow: 5px 5px $blue_light;
+		box-shadow: $key_shadow_offset $key_shadow_offset $blue_light;
 	}
 	.column_indexes {
 		padding-bottom: 5px;
