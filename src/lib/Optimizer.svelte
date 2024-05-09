@@ -148,24 +148,24 @@
 	
 
 	/** @type {string[]}*/
-	let keycodes = [];
+	let all_keycodes = [];
 	
 	async function get_sizes() {
 		layout_sizes = await invoke('get_layout_presets')
 		// selected_size = layout_sizes[0]
 	}
 	async function get_keycodes() {
-		keycodes = await invoke('get_all_keycodes')
-		keycodes = keycodes.filter(x => x != "LS" && x != "LST")
+		all_keycodes = await invoke('get_all_keycodes')
+		all_keycodes = all_keycodes.filter(x => x != "LS" && x != "LST")
 	}
 	$: {
 		selected_num_layers
-		keycodes = keycodes.filter(str => {
+		all_keycodes = all_keycodes.filter(str => {
 			const regex = /^LS\d+$/;
 			return !regex.test(str);
 		});
 		for (let n = 0; n < selected_num_layers; n++) {
-			keycodes.push(`LS${n}`)
+			all_keycodes.push(`LS${n}`)
 		}
 	}
 
@@ -365,8 +365,10 @@
 		})
 	}
 	async function recompute_valid_keycodes() {
+		console.log(`explicit inclusions ${keycode_options.explicit_inclusions}`)
 		await invoke("recompute_valid_keycodes", {options: keycode_options}).then((res) => {
 			valid_keycodes = res
+			keycode_display = valid_keycodes
 		}).catch((e) => {
 			alert(e)
 			console.error(e)
@@ -408,11 +410,30 @@
 		}
 	}
 
+	let explicit_inclusion_string = ""
+	/**@type {string[]} */
+	let keycode_display = [];
+
+	function add_explicit_inclusion() {
+		if (keycode_options) {
+			console.log("adding inclusion option")
+			keycode_options.explicit_inclusions.push("_NO")
+			keycode_options.explicit_inclusions = keycode_options.explicit_inclusions
+		}
+	}
+	/**@param {number} ind */
+	function remove_explicit_inclusion(ind) {
+		if (keycode_options) {
+			console.log("removing inclusion option")
+			keycode_options.explicit_inclusions.splice(ind, 1)
+			keycode_options.explicit_inclusions = keycode_options.explicit_inclusions
+		}
+	}
+	
 	let config_dir = ""
 	/**@type {number}*/
 	let save_interval_timer;
 	onMount(() => {
-
 		invoke("get_config_dir").then((res) => {
 			config_dir = res
 			selected_toml_file = `${config_dir}/autosave.toml`
@@ -431,7 +452,10 @@
 		})
 		get_keycodes()
 		get_default_genetic_options()
-		get_default_keycode_options()
+		get_default_keycode_options().then((res) => {
+			explicit_inclusion_string = keycode_options.explicit_inclusions.join(",")
+			keycode_display = valid_keycodes
+		})
 		get_default_dataset_options()
 		get_default_score_options()
 
@@ -556,7 +580,7 @@
 <div class="tab_contents">
 	<div class="layout">
 	<div class={active_tab == "tab1" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab1"]} bind:layout={layout} bind:keycodes={keycodes} num_layers={selected_num_layers} layout_size={selected_size} layout_string={layout_string} {is_size_from_config} bind:saved={saved}/>
+		<svelte:component this={tab_components["tab1"]} bind:layout={layout} bind:keycodes={all_keycodes} num_layers={selected_num_layers} layout_size={selected_size} layout_string={layout_string} {is_size_from_config} bind:saved={saved}/>
 	</div>
 	<div class={active_tab == "tab2" ? "tabshow" : "tabhide"}>
 		<svelte:component this={tab_components["tab2"]} bind:effort_layer_string={effort_layer_string} bind:effort_layer={effort_layer} bind:layout_size={selected_size} {is_size_from_config} bind:saved={saved} />
@@ -569,45 +593,87 @@
 	
 	
 	<div class="options {options_display}">
-	<h2>Options</h2>
-	num_threads: <input type="range" min=1 max=24 bind:value={num_threads} /> {num_threads}
+	<table>
+		<tr><th style="font-size: 32px;">Options</th></tr>
+		<tr>
+			<td>num_threads</td> 
+			<td>
+				<input type="range" min=1 max=24 bind:value={num_threads} /> <input type="number" min=1 max=24 bind:value={num_threads} />
+			</td>
+		</tr>
+
 	{#if genetic_options}
-	<h3>Genetic options</h3>
+	{@const mutation_total = genetic_options.swap_weight + genetic_options.replace_weight}
+		<tr><th>Genetic options<th></tr>
 		{#each Object.entries(genetic_options) as [key, value]}
+		<tr>
+			<td>{key}</td>
+		<td>
 		{#if key == "population_size"}
-			{key}: <input type="range" min=0 max=10000 step=100 bind:value={genetic_options[key]} /> <input type="number" bind:value={genetic_options[key]} />
-			<br>
-		{:else}
-			<span>{key} = {value}</span> <br>
+			<input type="range" min=0 max=10000 step=100 bind:value={genetic_options[key]} />
+			<input type="number" bind:value={genetic_options[key]} />
+		{:else if key == "generation_count"}
+			<input type="range" min=0 max=500 step=10 bind:value={genetic_options[key]} />
+			<input type="number" bind:value={genetic_options[key]} />
+		{:else if key == "fitness_cutoff"}
+			<input type="range" min=0 max=1 step=0.05 bind:value={genetic_options[key]} />
+			<input type="number" bind:value={genetic_options[key]} />
+		{:else if key == "swap_weight" || key == "replace_weight"}
+			<input type="range" min=0 max=10 step=1 bind:value={genetic_options[key]} />
+			<input type="number" bind:value={genetic_options[key]} />
 		{/if}
+		</td>
+		</tr>
 		{/each}
+		{(genetic_options.swap_weight / (mutation_total) * 100).toFixed(0)}% swaps, {(genetic_options.replace_weight / (mutation_total) * 100).toFixed(0)}% replacements
 	{/if}
 
 	{#if keycode_options}
-	<h3>Keycode options</h3>
+	<tr><th>Keycode options</th></tr>
 	{#each Object.entries(keycode_options) as [key, value]}
+	<tr>
+		<td>{key}</td>
+		<td>
 		{#if key != "explicit_inclusions"}
-			{key}: <label class="switch">
+			<label class="switch">
 				<input type="checkbox" bind:checked={keycode_options[key]} on:change={recompute_valid_keycodes} />
 				<span class="slider round"></span>
 			</label>
-			<br>
 			<!-- {key}: <input type="checkbox" bind:checked={keycode_options[key]} on:change={recompute_valid_keycodes} /> <br> -->
 		{:else}
-			<span>{key} = {keycode_options[key]}</span> <br>
+
+		{#key keycode_options.explicit_inclusions}
+			{#each keycode_options.explicit_inclusions as code, ei_ind}
+			<select bind:value={code} on:change={recompute_valid_keycodes}>
+				{#each all_keycodes as keycode}
+					<option value="_{keycode}">{keycode == "NO" ? "" : keycode}</option>
+				{/each}
+			</select>
+			<button on:click={() => remove_explicit_inclusion(ei_ind)}>x</button>
+			{/each}
+			<button on:click={add_explicit_inclusion}>+</button>
+			<!-- <textarea bind:value={explicit_inclusion_string} on:input={validate_and_update_explicit_inclusions} /> -->
+			{/key}
 		{/if}
+		</td>
+	</tr>
 	{/each}
-	<div style="width: 400px; word-wrap: normal;">Keycode list: <span>{valid_keycodes.join(", ")}</span></div>
+	<div style="width: 400px; word-wrap: normal;">Keycode list: <span>{keycode_display.join(", ")}</span></div>
 	{/if}
 
 	{#if dataset_options}
-	<h3>Dataset options</h3>
+	<tr><th>Dataset options</th></tr>
 	{#each Object.entries(dataset_options) as [key, value]}
-	{#if key == "dataset_paths"}
-		<div style="width: 400px; word-wrap: normal;"><span>{key} = {value.join(", ")}</span></div>
-	{:else}
-		<span>{key} = {value}</span> <br>
-	{/if}
+	<tr>
+		<td>{key}</td>
+		<td>
+		{#if key == "dataset_paths"}
+			<textarea bind:value={keycode_options[key]} />
+		{:else}
+			{value}
+		{/if}
+		</td>
+	</tr>
 	{/each}
 	{/if}
 
@@ -617,6 +683,9 @@
 		<span>{key} = {value}</span> <br>
 	{/each}
 	{/if}
+	
+	</table>
+	
 	</div>
 	</div>
 </div>
@@ -663,11 +732,18 @@
 		margin: 1rem;
 		margin-left: 3rem;
 	}
+	.options input:not([type="range"]) {
+		width: 6rem;
+	}
 	.options_inline {
 		flex: 0 0 auto;
 	}
 	.options_block {
 		flex: 0 0 100%;
+	}
+	.options th {
+		text-align: left;
+		padding-top: 1rem;
 	}
 	// these hide show are the contents
 	.tabhide {
