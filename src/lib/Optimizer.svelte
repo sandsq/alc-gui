@@ -660,7 +660,8 @@
 							<input type="number" min="1" max="24" bind:value={num_threads} />
 						</td>
 					</tr>
-
+				</table>
+				<table>
 					{#if genetic_options}
 						{@const mutation_total = genetic_options.swap_weight + genetic_options.replace_weight}
 						<tr><th>Genetic options</th><th></th></tr>
@@ -710,12 +711,13 @@
 								</td>
 							</tr>
 						{/each}
-						{((genetic_options.swap_weight / mutation_total) * 100).toFixed(0)}% swaps, {(
-							(genetic_options.replace_weight / mutation_total) *
-							100
-						).toFixed(0)}% replacements
+						<tr><td colspan="2">
+							{((genetic_options.swap_weight / mutation_total) * 100).toFixed(0)}% swaps, {((genetic_options.replace_weight / mutation_total) *
+							100).toFixed(0)}% replacements
+						</td></tr>
 					{/if}
-
+				</table>
+				<table>
 					{#if keycode_options}
 						<tr><th>Keycode options</th></tr>
 						{#each Object.entries(keycode_options) as [key, value]}
@@ -751,11 +753,16 @@
 								</td>
 							</tr>
 						{/each}
-						<div style="width: 400px; word-wrap: normal;">
-							Keycode list: <span>{keycode_display.join(', ')}</span>
-						</div>
+						<tr>
+							<td colspan="2">
+							<div style="width: 750px; word-wrap: normal;">
+								Keycode list: <span>{keycode_display.join(', ')}</span>
+							</div>
+							<td>
+						</tr>
 					{/if}
-
+				</table>
+				<table>
 					{#if dataset_options}
 						<tr><th>Dataset options</th></tr>
 						{#each Object.entries(dataset_options) as [key, value]}
@@ -768,6 +775,28 @@
 												{dir}<button>Browse</button>
 											{/each}
 										</div>
+									{:else if key == "dataset_weights"}
+										{#each dataset_options['dataset_weights'] as weight, d_ind}
+											<input type="number" bind:value={weight} />
+										{/each}
+									{:else if key == "max_ngram_size"}
+										<input
+											type="range"
+											min="1"
+											max="5"
+											step="1"
+											bind:value={dataset_options[key]}
+										/>
+										<input type="number" bind:value={dataset_options[key]} />
+									{:else if key == "top_n_ngrams_to_take"}
+										<input
+											type="range"
+											min="0"
+											max="100"
+											step="10"
+											bind:value={dataset_options[key]}
+										/>
+										<input type="number" bind:value={dataset_options[key]} />
 									{:else}
 										{value}
 									{/if}
@@ -775,14 +804,51 @@
 							</tr>
 						{/each}
 					{/if}
-
+				</table>
+				<table>
 					{#if score_options}
 						<tr><th>Scoring options</th></tr>
 						{#each Object.entries(score_options) as [key, value]}
 							<tr>
-								<td>{key}</td>
-								<td>{value} </td></tr
-							>
+								<td>{key == "finger_roll_same_row_reduction_factor" ? "same_row_reduction_factor" : key}</td>
+								<td>
+									{#if key == "hand_alternation_weight" || key == "finger_roll_weight"}
+										<input
+											type="range"
+											min="1"
+											max="10"
+											step="1"
+											bind:value={score_options[key]}
+										/>
+										<input type="number" bind:value={score_options[key]} />
+									{:else if key == "hand_alternation_reduction_factor" || key == "finger_roll_reduction_factor" || key == "finger_roll_same_row_reduction_factor"}
+										<input
+											type="range"
+											min="0"
+											max="1"
+											step="0.05"
+											bind:value={score_options[key]}
+										/>
+										<input type="number" bind:value={score_options[key]} />
+									{:else}
+										<input
+											type="range"
+											min="1"
+											max="10"
+											step="0.05"
+											bind:value={score_options[key]}
+										/>
+										<input type="number" bind:value={score_options[key]} />
+									{/if}
+								</td>
+							</tr>
+							<tr>
+								<td colspan="2">
+								{#if key == "finger_roll_weight"}
+									<div style="margin-top: 10px; margin-bottom: 10px;">The importance of hand alternation is <br /> {(score_options.hand_alternation_weight / score_options.finger_roll_weight).toFixed(2)}x that of finger rolling.</div>
+								{/if}
+								</td>
+							</tr>
 						{/each}
 					{/if}
 				</table>
@@ -843,6 +909,10 @@
 		text-align: left;
 		padding-top: 1rem;
 	}
+	.options input {
+		margin-top: 6px;
+		margin-left: 10px;
+	}
 	// these hide show are the contents
 	.tabhide {
 		display: none;
@@ -902,7 +972,7 @@
 		width: 32px;
 		height: 18px;
 		vertical-align: bottom;
-		margin-bottom: 1px;
+		margin-bottom: 3px;
 	}
 	/* Hide default HTML checkbox */
 	.switch input {
