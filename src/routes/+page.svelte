@@ -1,6 +1,7 @@
 <script>
 	import Optimizer from '../lib/Optimizer.svelte';
 </script>
+
 <!-- <style lang="scss">
 	@use "../styles/colors.scss" as *;
 	:global(*) {
@@ -14,4 +15,3 @@
 	}
 </style> -->
 <Optimizer />
-

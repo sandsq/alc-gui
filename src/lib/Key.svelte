@@ -1,9 +1,9 @@
 <script>
-	import { onMount } from 'svelte'
-	import { getContext } from "svelte"
-	const notify_symmetric = getContext("symmetric_position")
-	const notify_locked = getContext("locked_position")
-	const notify_keycode = getContext("keycode_position")
+	import { onMount } from 'svelte';
+	import { getContext } from 'svelte';
+	const notify_symmetric = getContext('symmetric_position');
+	const notify_locked = getContext('locked_position');
+	const notify_keycode = getContext('keycode_position');
 
 	/**@type {string}*/
 	export let keycode;
@@ -18,13 +18,11 @@
 	/**@type {number}*/
 	export let num_cols;
 
-	
 	function set_symmetric() {
-		notify_symmetric(current_key_location)
+		notify_symmetric(current_key_location);
 	}
-	
 
-	let keycode_select_class = "keycode_select_nonfaded"
+	let keycode_select_class = 'keycode_select_nonfaded';
 
 	// $: keycode, notify_keycode(current_key_location, keycode)
 	$: {
@@ -34,21 +32,17 @@
 		// } else {
 		// 	keycode_select_class = "keycode_select_nonfaded"
 		// }
-		notify_keycode(current_key_location, keycode, false)
+		notify_keycode(current_key_location, keycode, false);
 	}
 	function set_keycode_from_select() {
-		notify_keycode(current_key_location, keycode, true)
+		notify_keycode(current_key_location, keycode, true);
 	}
 
-	onMount(() => {
-		
-	})
-	
-	
+	onMount(() => {});
 </script>
 
 <style lang="scss">
-	@use "../styles/colors.scss" as *;
+	@use '../styles/colors.scss' as *;
 	:global(*) {
 		color: $text;
 	}
@@ -97,4 +91,3 @@
 		border-radius: 8px;
 	}
 </style>
-
