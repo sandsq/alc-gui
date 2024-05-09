@@ -67,7 +67,7 @@
 
 	/**@param {string} test*/
 	function resize_layout(test) {
-		console.log(`trying to resize layout with ${num_layers} layers and ${layout_size} size from ${test}`)
+		// console.log(`trying to resize layout with ${num_layers} layers and ${layout_size} size from ${test}`)
 		if (num_layers && layout_size) {	
 			layout = [];
 			for (let n = 0; n < num_layers; n++) {
@@ -80,7 +80,7 @@
 					}
 				}
 			}
-			console.log(`resized layout${num_layers} layers and ${layout_size} size from ${test}`)
+			// console.log(`resized layout${num_layers} layers and ${layout_size} size from ${test}`)
 			// console.log(`resized layout, it has ${layout.length} layers and (${layout[0].length} x ${layout[0][0].length}) size`)
 		}
 	}
@@ -132,10 +132,10 @@
 	}
 	$: {
 		layout_size
-		console.log(`layout size changed ${layout_size}`)
-		// if (!is_size_from_config) {
-		resize_layout("$: layout_size,...")
-		// }
+		console.log(`layout_size changed to ${layout_size} for resize_layout`)
+		if (!is_size_from_config) {
+			resize_layout("$: layout_size,...")
+		}
 	}
 	$: num_layers, resize_num_layers()
 
@@ -196,7 +196,7 @@
 				}
 			}
 		}
-		console.log(`filled layout`)
+		console.log(`filled layout from string`)
 	}
 	$: {
 		if (layout_string) {

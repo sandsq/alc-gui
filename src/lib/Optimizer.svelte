@@ -16,8 +16,9 @@
 	/**
 	 * @typedef {Object} TabComponentMap
 	 * @property {typeof Layout} tab1
-	 * @property {typeof EffortLayer} tab2
 	 * @property {typeof PhalanxLayer} tab3
+	 * @property {typeof EffortLayer} tab2
+	 
 	 */
 	/** @type {TabComponentMap} */
 	const tab_components = {
@@ -86,6 +87,7 @@
 					layout_string = res.layout_info.layout;
 					effort_layer_string = res.layout_info.effort_layer
 					phalanx_layer_string = res.layout_info.phalanx_layer
+					console.log(`loaded phalanx layer string ${phalanx_layer_string}`)
 					num_threads = res.layout_optimizer_config.num_threads
 					genetic_options = res.layout_optimizer_config.genetic_options
 					keycode_options = res.layout_optimizer_config.keycode_options
@@ -427,10 +429,6 @@
 		get_default_dataset_options()
 		get_default_score_options()
 
-		
-		
-
-
 		// appWindow.once("ready", async () => {
 		// 	await create_blank_layers("app window ready")
 			// selected_size = layout_sizes[0]
@@ -532,7 +530,7 @@
 	</div>
 	<div class={active_tab == "tab3" ? "tabshow" : "tabhide"}>
 		<svelte:component this={tab_components["tab3"]} bind:phalanx_layer_string={phalanx_layer_string} bind:phalanx_layer={phalanx_layer} bind:layout_size={selected_size} {is_size_from_config} />
-	</div>
+	</div>	
 	</div>
 
 	

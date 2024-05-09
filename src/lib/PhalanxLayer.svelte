@@ -26,15 +26,16 @@
 	}
 	$: {
 		layout_size
-		// if (!is_size_from_config) {
-		resize_phalanx_layer()
-		// }
+		console.log(`layout_size changed to ${layout_size} for resize_phalanx_layer`)
+		if (!is_size_from_config) {
+			resize_phalanx_layer()
+		}
 	}
 
 	/**@param {string} phalanx_string*/
 	function fill_phalanx_layer_from_string(phalanx_string) {
 		resize_phalanx_layer()
-		console.log(`filling phalanx\n${phalanx_layer_string}`)
+		console.log(`filling phalanx`) //\n${phalanx_layer_string}`)
 		let rows = split_layer_to_rows(phalanx_string)
 		if (phalanx_layer.length != rows.length) {
 			alert(`the number of rows in the phalanx layer (${phalanx_layer[0].length}) does not match the number of rows found from the config (${rows.length}: ${rows}); this is probably a developer error due to parsing the config incorrectly`)
@@ -84,9 +85,10 @@
 				phalanx_layer[i][j] = [hand, finger]
 			}
 		}
-		
+		console.log(`filled phalanx layer from string`)
 	}
 	$: {
+		console.log(`phalanx layer string changed ${phalanx_layer_string}`)
 		if (phalanx_layer_string) {
 			fill_phalanx_layer_from_string(phalanx_layer_string)
 		}

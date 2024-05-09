@@ -23,9 +23,10 @@
 	}
 	$: {
 		layout_size
-		// if (!is_size_from_config) {
-		resize_effort_layer()
-		// }
+		console.log(`layout_size changed to ${layout_size} for resize_effort_layer`)
+		if (!is_size_from_config) {
+			resize_effort_layer()
+		}
 	}
 
 	/**@param {string} effort_string*/
@@ -48,11 +49,13 @@
 				effort_layer[i][j] = parseFloat(col)
 			}
 		}
+		console.log(`filled effort layer from string`)
 		// console.log(`filled effort layer with ${effort_string}`)
 		// console.log(`effort layer ${effort_layer}`)
 	}
 	
 	$: {
+		console.log(`effort layer string changed ${effort_layer_string}`)
 		if (effort_layer_string) {
 			fill_effort_layer_from_string(effort_layer_string)
 		}
