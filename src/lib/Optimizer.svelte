@@ -1,6 +1,6 @@
 <script>
 	import { invoke } from '@tauri-apps/api/tauri'
-	import { onMount } from 'svelte'
+	import { onMount, onDestroy } from 'svelte'
 	import { open, ask } from '@tauri-apps/api/dialog';
 	import { setContext } from "svelte";
 	import Layout from "./Layout.svelte";
@@ -405,6 +405,8 @@
 	}
 
 	let config_dir = ""
+	/**@type {number}*/
+	let save_interval_timer;
 	onMount(() => {
 
 		invoke("get_config_dir").then((res) => {
@@ -429,11 +431,14 @@
 		get_default_dataset_options()
 		get_default_score_options()
 
+
+ 	 	save_interval_timer = setInterval(write_toml, 10000);
 		// appWindow.once("ready", async () => {
 		// 	await create_blank_layers("app window ready")
 			// selected_size = layout_sizes[0]
 		// })
 	})
+	onDestroy(() => clearInterval(save_interval_timer));
 </script>
 
 <div class="debug">
