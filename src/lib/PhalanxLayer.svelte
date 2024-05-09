@@ -1,6 +1,6 @@
 <script>
 	import { split_layer_to_rows, split_row_to_columns } from "./utils.js"
-	import { onMount } from 'svelte'
+	import { onMount, afterUpdate } from 'svelte'
 
 	/**@type {[string, string][][]}*/
 	export let phalanx_layer;
@@ -10,6 +10,8 @@
 	export let layout_size;
 	/**@type {boolean}*/
 	export let is_size_from_config;
+	/**@type {boolean}*/
+	export let saved
 
 
 	let hands = ["left", "right"]
@@ -98,6 +100,9 @@
 	// onMount(() => {
 	// 	resize_phalanx_layer()
 	// })
+	// afterUpdate(() => {
+	// 	saved = false
+	// });
 </script>
 
 {#if phalanx_layer}

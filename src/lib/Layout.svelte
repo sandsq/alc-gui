@@ -1,6 +1,6 @@
 <script>
 	import { split_layer_to_rows, split_row_to_columns, layer_switch_regex } from "./utils.js"
-	import { onMount } from 'svelte'
+	import { onMount, afterUpdate, beforeUpdate } from 'svelte'
 	
 
 	
@@ -30,6 +30,8 @@
 	export let layout_string;
 	/**@type boolean*/
 	export let is_size_from_config;
+	/**@type boolean*/
+	export let saved;
 
 	/**
 	 * @param {string} keycode
@@ -302,6 +304,11 @@
 		// resize_layout("from mount")
 	})
 
+	// afterUpdate(() => {
+	// 	console.log("change happened on layout")
+	// 	saved = false
+	// });
+
 </script>
 
 {#if layout}
@@ -334,7 +341,7 @@
 						</select>
 						
 							<span class="key_flag {layout[n][i][j].locked ? "locked" : "unlocked"}">
-								<button on:click={() => layout[n][i][j].locked = !layout[n][i][j].locked}>
+								<button on:click={() => {layout[n][i][j].locked = !layout[n][i][j].locked; saved = false}}>
 									{#if layout[n][i][j].locked}
 									🔒
 									{:else}
@@ -343,7 +350,7 @@
 								</button>
 							</span>
 							<span class="key_flag {layout[n][i][j].symmetric ? "symmetric" : "asymmetric"}">
-								<button on:click={() => set_corresponding_symmetries(n, i, j)} disabled={j == (num_cols - 1) / 2}>
+								<button on:click={() => {set_corresponding_symmetries(n, i, j); saved = false}} disabled={j == (num_cols - 1) / 2}>
 									{#if layout[n][i][j].symmetric}
 									o|o
 									{:else if j == (num_cols - 1) / 2}

@@ -272,6 +272,7 @@
 		return output
 	}
 
+	let saved = false;
 	/**
 	* @typedef {Object} LayoutInfo
 	* @property {number} num_rows
@@ -281,6 +282,7 @@
 	* @property {string} phalanx_layer
 	*/
 	async function write_toml() {
+		saved = true
 		/**@type LayoutInfo*/
 		let li = {
 			num_rows: selected_size[0],
@@ -289,33 +291,9 @@
 			effort_layer: layer_to_string(effort_layer),
 			phalanx_layer: layer_to_string(phalanx_layer)
 		}
-		let gen_string = ""
-		for (let [prop, val] of Object.entries(genetic_options)) {
-			gen_string += `${prop} = ${val}\n`
-		}
-		let keycode_string = ""
-		for (let [prop, val] of Object.entries(keycode_options)) {
-			if (Array.isArray(val)) {
-				keycode_string += `${prop} = ["${val.join("\", \"")}"]\n`
-			} else {
-				keycode_string += `${prop} = ${val}\n`
-			}
-			
-		}
-		let dataset_string = ""
-		for (let [prop, val] of Object.entries(dataset_options)) {
-			if (Array.isArray(val)) {
-				dataset_string += `${prop} = ["${val.join("\", \"")}"]\n`
-			} else {
-				dataset_string += `${prop} = ${val}\n`
-			}
-		}
-		let score_string = ""
-		for (let [prop, val] of Object.entries(score_options)) {
-			score_string += `${prop} = ${val}\n`
-		}
 		try {
 			await invoke('write_toml', {filename: `${config_dir}/saved.toml`, numThreads: num_threads, layoutInfo: li, geneticOptions: genetic_options, keycodeOptions: keycode_options, datasetOptions: dataset_options, scoreOptions: score_options})
+			
 		} catch (e) {
 			alert(e)
 		}
@@ -439,6 +417,28 @@
 		// })
 	})
 	onDestroy(() => clearInterval(save_interval_timer));
+	
+	
+	let container;
+	/**@param {any} event*/
+	function handleChange(event) {
+		const target = event.target;
+		let value;
+		if (target) {
+			switch (target.type) {
+				case "checkbox":
+					value = target.checked
+					break
+				case "range":
+					value = target.value
+					break
+				default:
+					console.log(target.type)
+			}
+			saved = false
+		}
+	}
+
 </script>
 
 <div class="debug">
@@ -492,6 +492,7 @@
 
 <p>Config dir: <input type="text" bind:value={config_dir} />
 <button on:click={write_toml}>Write</button></p>
+<p>saved status: {saved}</p>
 
 <h1>Layout section</h1>
 <div>
@@ -525,19 +526,21 @@
 	<button on:click={() => active_tab = 'tab2'} class="{active_tab == "tab2" ? "active_tab" : "inactive_tab"} tab">Effort layer</button>
 	<button on:click={() => active_tab = 'tab3'} class="{active_tab == "tab3" ? "active_tab" : "inactive_tab"} tab">Hand assignment</button>
 </div>
+<div bind:this={container} on:input={handleChange} on:change={handleChange}>
 <div class="tab_contents">
 	<div class="layout">
 	<div class={active_tab == "tab1" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab1"]} bind:layout={layout} bind:keycodes={keycodes} num_layers={selected_num_layers} layout_size={selected_size} layout_string={layout_string} {is_size_from_config} />
+		<svelte:component this={tab_components["tab1"]} bind:layout={layout} bind:keycodes={keycodes} num_layers={selected_num_layers} layout_size={selected_size} layout_string={layout_string} {is_size_from_config} bind:saved={saved}/>
 	</div>
 	<div class={active_tab == "tab2" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab2"]} bind:effort_layer_string={effort_layer_string} bind:effort_layer={effort_layer} bind:layout_size={selected_size} {is_size_from_config} />
+		<svelte:component this={tab_components["tab2"]} bind:effort_layer_string={effort_layer_string} bind:effort_layer={effort_layer} bind:layout_size={selected_size} {is_size_from_config} bind:saved={saved} />
 	</div>
 	<div class={active_tab == "tab3" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab3"]} bind:phalanx_layer_string={phalanx_layer_string} bind:phalanx_layer={phalanx_layer} bind:layout_size={selected_size} {is_size_from_config} />
+		<svelte:component this={tab_components["tab3"]} bind:phalanx_layer_string={phalanx_layer_string} bind:phalanx_layer={phalanx_layer} bind:layout_size={selected_size} {is_size_from_config} bind:saved={saved} />
 	</div>	
 	</div>
 
+	
 	
 	<div class="options {options_display}">
 	<h2>Options</h2>
@@ -584,7 +587,7 @@
 	{/each}
 	{/if}
 	</div>
-
+	</div>
 </div>
 {/if}
 

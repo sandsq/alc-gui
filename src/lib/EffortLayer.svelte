@@ -1,6 +1,6 @@
 <script>
 	import { split_layer_to_rows, split_row_to_columns } from "./utils.js"
-	import { onMount } from 'svelte'
+	import { onMount, afterUpdate } from 'svelte'
 	import { appWindow } from '@tauri-apps/api/window'
 
 	/**@type {number[][]}*/
@@ -11,6 +11,8 @@
 	export let layout_size;
 	/**@type {boolean}*/
 	export let is_size_from_config;
+	/**@type {boolean}*/
+	export let saved
 
 	function resize_effort_layer() {
 		effort_layer = [];
@@ -64,6 +66,9 @@
 	// onMount(() => {
 	// 	resize_effort_layer()
 	// })
+	// afterUpdate(() => {
+	// 	saved = false
+	// });
 </script>
 
 {#if effort_layer}
