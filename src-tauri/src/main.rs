@@ -2,14 +2,25 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::{fs, path::{Path, PathBuf}};
-
+use tauri::{CustomMenuItem, Menu, MenuItem, Submenu};
 use strum::IntoEnumIterator;
 use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout_presets::{get_all_layout_size_presets, get_size_variant}}, optimizer::config::{DatasetOptions, GeneticOptions, LayoutInfoTomlAdapter, LayoutOptimizerConfig, LayoutOptimizerTomlAdapter, ScoreOptions}, text_processor::keycode::{generate_default_keycode_set, Keycode, KeycodeOptions}};
 use alc::keyboard::layout_presets::LayoutSizePresets::*;
 use tauri::{api::path::config_dir, Manager};
 
 fn main() {
+
+	// here `"quit".to_string()` defines the menu item id, and the second parameter is the menu item label.
+	let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+	let close = CustomMenuItem::new("close".to_string(), "Close");
+	let submenu = Submenu::new("File", Menu::new().add_item(quit).add_item(close));
+	let _menu = Menu::new()
+	.add_submenu(submenu)
+	.add_native_item(MenuItem::Copy);
+	
+
   tauri::Builder::default()
+	// .menu(menu)
     .setup(|app| {
 		app.listen_global("selected_toml_changed", |event| {
 			let toml_file = event.payload();
@@ -38,6 +49,9 @@ fn main() {
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
+
+
+
 
 #[tauri::command]
 fn greet(name: &str) -> String {

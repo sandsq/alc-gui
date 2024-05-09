@@ -1,7 +1,7 @@
 <script>
 	import { invoke } from '@tauri-apps/api/tauri'
 	import { onMount, onDestroy } from 'svelte'
-	import { open, ask } from '@tauri-apps/api/dialog';
+	import { open, save, ask } from '@tauri-apps/api/dialog';
 	import { setContext } from "svelte";
 	import Layout from "./Layout.svelte";
 	import EffortLayer from "./EffortLayer.svelte";
@@ -272,7 +272,7 @@
 		return output
 	}
 
-	let saved = false;
+	let saved = true;
 	/**
 	* @typedef {Object} LayoutInfo
 	* @property {number} num_rows
@@ -281,8 +281,24 @@
 	* @property {string} effort_layer
 	* @property {string} phalanx_layer
 	*/
-	async function write_toml() {
-		saved = true
+
+	/**@param {boolean} show_saving_dialog*/
+	async function write_toml(show_saving_dialog) {
+
+		/**@type {string | null}*/
+		let save_path;
+		if (show_saving_dialog) {
+			save_path = await save({
+				filters: [{
+					name: 'toml',
+					extensions: ['toml'],
+				}],
+				defaultPath: config_dir
+			});
+		} else {
+			save_path = `${config_dir}/saved.toml`
+		}
+
 		/**@type LayoutInfo*/
 		let li = {
 			num_rows: selected_size[0],
@@ -292,11 +308,12 @@
 			phalanx_layer: layer_to_string(phalanx_layer)
 		}
 		try {
-			await invoke('write_toml', {filename: `${config_dir}/saved.toml`, numThreads: num_threads, layoutInfo: li, geneticOptions: genetic_options, keycodeOptions: keycode_options, datasetOptions: dataset_options, scoreOptions: score_options})
+			await invoke('write_toml', {filename: save_path, numThreads: num_threads, layoutInfo: li, geneticOptions: genetic_options, keycodeOptions: keycode_options, datasetOptions: dataset_options, scoreOptions: score_options})
 			
 		} catch (e) {
 			alert(e)
 		}
+		saved = true
 	}
 
 
@@ -410,7 +427,7 @@
 		get_default_score_options()
 
 
- 	 	save_interval_timer = setInterval(write_toml, 10000);
+ 	 	save_interval_timer = setInterval(() => write_toml(false), 10000);
 		// appWindow.once("ready", async () => {
 		// 	await create_blank_layers("app window ready")
 			// selected_size = layout_sizes[0]
@@ -491,7 +508,7 @@
 </div>
 
 <p>Config dir: <input type="text" bind:value={config_dir} />
-<button on:click={write_toml}>Write</button></p>
+<button on:click={() => write_toml(true)}>Save as</button></p>
 <p>saved status: {saved}</p>
 
 <h1>Layout section</h1>
