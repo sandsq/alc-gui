@@ -9,6 +9,8 @@
 	export let effort_layer_string;
 	/**@type {[number, number]}*/
 	export let layout_size;
+	/**@type {boolean}*/
+	export let is_size_from_config;
 
 	function resize_effort_layer() {
 		effort_layer = [];
@@ -19,7 +21,12 @@
 			}
 		}
 	}
-	$: layout_size, resize_effort_layer()
+	$: {
+		layout_size
+		// if (!is_size_from_config) {
+		resize_effort_layer()
+		// }
+	}
 
 	/**@param {string} effort_string*/
 	function fill_effort_layer_from_string(effort_string) {

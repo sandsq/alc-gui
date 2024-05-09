@@ -131,10 +131,11 @@
 		}
 	}
 	$: {
-		layout_size 
-		if (!is_size_from_config) {
-			resize_layout("$: layout_size,...")
-		}
+		layout_size
+		console.log(`layout size changed ${layout_size}`)
+		// if (!is_size_from_config) {
+		resize_layout("$: layout_size,...")
+		// }
 	}
 	$: num_layers, resize_num_layers()
 
@@ -142,7 +143,7 @@
 	/**@param {string} layout_string*/
 	function fill_layout_from_string(layout_string) {
 		resize_layout("fill_layout_from_string")
-		console.log(`trying to fill layout with ${layout_string}`)
+		// console.log(`trying to fill layout with ${layout_string}`)
 		let layers = layout_string.split(/___(.*)___/g)
 		layers = layers.filter((x) => x != "" && !x.includes("Layer"))
 		if (layout.length != layers.length) {

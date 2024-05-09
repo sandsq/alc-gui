@@ -79,9 +79,9 @@
 		if (opened_file !== null) {
 			invoke('process_config', {configFile: opened_file})
 				.then((res) => {
+					is_size_from_config = true
 					selected_toml_file = opened_file
 					selected_size = [res.layout_info.num_rows, res.layout_info.num_cols]
-					is_size_from_config = true
 					selected_num_layers = (res.layout_info.layout.match(/Layer/g) || []).length;
 					layout_string = res.layout_info.layout;
 					effort_layer_string = res.layout_info.effort_layer
@@ -92,6 +92,7 @@
 					recompute_valid_keycodes()
 					dataset_options = res.layout_optimizer_config.dataset_options
 					score_options = res.layout_optimizer_config.score_options
+					// is_size_from_config = false
 					console.log(`successfully loaded ${opened_file}`)
 				})
 				.catch((e) => {
@@ -338,6 +339,7 @@
 	$: {
 		create_blank_layers(selected_size, "from $: selected_size, ...")
 	}
+	
 
 	async function get_default_genetic_options() {
 		await invoke("get_default_genetic_options").then((res) => {
@@ -495,7 +497,8 @@
 	choose layout size:
 	<!-- {#await get_sizes then} -->
 	<!-- bind:value={selected_size} -->
-	<select bind:value={selected_size} on:change={readjust_tab_contents} on:change={() => {is_size_from_config = false; create_blank_layers(selected_size, "from select change")}}>
+	<select on:change={() => {is_size_from_config = false}} bind:value={selected_size} on:change={readjust_tab_contents}>
+	
 		{#each layout_sizes as size}
 			<option value={size}>{size[0]} x {size[1]}</option>
 		{/each}
@@ -525,10 +528,10 @@
 		<svelte:component this={tab_components["tab1"]} bind:layout={layout} bind:keycodes={keycodes} num_layers={selected_num_layers} layout_size={selected_size} layout_string={layout_string} {is_size_from_config} />
 	</div>
 	<div class={active_tab == "tab2" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab2"]} bind:effort_layer_string={effort_layer_string} bind:effort_layer={effort_layer} bind:layout_size={selected_size} />
+		<svelte:component this={tab_components["tab2"]} bind:effort_layer_string={effort_layer_string} bind:effort_layer={effort_layer} bind:layout_size={selected_size} {is_size_from_config} />
 	</div>
 	<div class={active_tab == "tab3" ? "tabshow" : "tabhide"}>
-		<svelte:component this={tab_components["tab3"]} bind:phalanx_layer_string={phalanx_layer_string} bind:phalanx_layer={phalanx_layer} bind:layout_size={selected_size} />
+		<svelte:component this={tab_components["tab3"]} bind:phalanx_layer_string={phalanx_layer_string} bind:phalanx_layer={phalanx_layer} bind:layout_size={selected_size} {is_size_from_config} />
 	</div>
 	</div>
 

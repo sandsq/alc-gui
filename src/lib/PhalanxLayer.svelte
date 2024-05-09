@@ -8,6 +8,9 @@
 	export let phalanx_layer_string;
 	/**@type {[number, number]}*/
 	export let layout_size;
+	/**@type {boolean}*/
+	export let is_size_from_config;
+
 
 	let hands = ["left", "right"]
 	let fingers = ["thumb", "index", "middle", "ring", "pinkie", "joint"]
@@ -21,11 +24,17 @@
 			}
 		}
 	}
-	$: layout_size, resize_phalanx_layer()
+	$: {
+		layout_size
+		// if (!is_size_from_config) {
+		resize_phalanx_layer()
+		// }
+	}
 
 	/**@param {string} phalanx_string*/
 	function fill_phalanx_layer_from_string(phalanx_string) {
 		resize_phalanx_layer()
+		console.log(`filling phalanx\n${phalanx_layer_string}`)
 		let rows = split_layer_to_rows(phalanx_string)
 		if (phalanx_layer.length != rows.length) {
 			alert(`the number of rows in the phalanx layer (${phalanx_layer[0].length}) does not match the number of rows found from the config (${rows.length}: ${rows}); this is probably a developer error due to parsing the config incorrectly`)
@@ -84,9 +93,9 @@
 		
 	}
 
-	onMount(() => {
-		resize_phalanx_layer()
-	})
+	// onMount(() => {
+	// 	resize_phalanx_layer()
+	// })
 </script>
 
 {#if phalanx_layer}
