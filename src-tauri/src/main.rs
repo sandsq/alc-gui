@@ -195,7 +195,7 @@ fn does_file_exist(filename: String) -> bool {
 }
 
 #[tauri::command]
-async fn run_optimizer(filename: String) -> Result<(), AlcError> {
+async fn run_optimizer(filename: String) -> Result<String, AlcError> {
 	// match optimize_from_toml(filename) {
 	// 	Ok(v) => v,
 	// 	Err(e) => panic!("{}", e)

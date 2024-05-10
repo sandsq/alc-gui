@@ -519,7 +519,14 @@
 
 	async function run_optimizer() {
 		await write_toml(false, true)
-		invoke("run_optimizer", {filename: `${config_dir}/autosave.toml`}).then((res) => {}).catch((e) => {
+		invoke("run_optimizer", {filename: `${config_dir}/autosave.toml`}).then(async (res) => {
+			let show_final_result = await confirm(`Load best layout? A copy can be found at ${res}`)
+			if (show_final_result) {
+				selected_toml_file = res
+				open_toml(false)
+				saved = false
+			}
+		}).catch((e) => {
 			alert(e)
 			console.error(e)
 		})
