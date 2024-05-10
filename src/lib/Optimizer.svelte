@@ -485,7 +485,11 @@
 		get_default_dataset_options();
 		get_default_score_options();
 
-		save_interval_timer = setInterval(() => write_toml(false, true), 10000);
+		save_interval_timer = setInterval(() => {
+			if (!saved) {
+				write_toml(false, true)
+			}
+		}, 10000);
 		// appWindow.once("ready", async () => {
 		// 	await create_blank_layers("app window ready")
 		// selected_size = layout_sizes[0]
