@@ -598,6 +598,7 @@
 	<select
 		on:change={() => {
 			is_size_from_config = false;
+			saved = false;
 		}}
 		bind:value={selected_size}
 		on:change={readjust_tab_contents}
@@ -608,7 +609,9 @@
 	</select>
 	<!-- {/await} -->
 	and number of layers:
-	<select bind:value={selected_num_layers}>
+	<select 
+		on:change={() => {saved = false;}}
+		bind:value={selected_num_layers}>
 		{#each { length: max_layers } as _, i}
 			<option value={i + 1}>{i + 1}</option>
 		{/each}
