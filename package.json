@@ -36,6 +36,7 @@
 	"type": "module",
 	"dependencies": {
 		"@tauri-apps/api": "^1.5.4",
+		"svelte-markdown": "^0.4.1",
 		"svelte-select": "^5.8.3"
 	}
 }

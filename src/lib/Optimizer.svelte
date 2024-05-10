@@ -8,6 +8,9 @@
 	import PhalanxLayer from './PhalanxLayer.svelte';
 	import { appWindow } from '@tauri-apps/api/window';
 	import { layer_switch_regex } from './utils';
+	import SvelteMarkdown from 'svelte-markdown';
+
+	
 
 	/**@type {keyof TabComponentMap}*/
 	let active_tab = 'tab1';
@@ -15,15 +18,17 @@
 	/**
 	 * @typedef {Object} TabComponentMap
 	 * @property {typeof Layout} tab1
-	 * @property {typeof PhalanxLayer} tab3
 	 * @property {typeof EffortLayer} tab2
+	 * @property {typeof PhalanxLayer} tab3
+	 * @property {typeof SvelteMarkdown} tab4
 	 
 	 */
 	/** @type {TabComponentMap} */
 	const tab_components = {
 		tab1: Layout,
 		tab2: EffortLayer,
-		tab3: PhalanxLayer
+		tab3: PhalanxLayer,
+		tab4: SvelteMarkdown,
 	};
 
 	/** @type {string | string[] | null}*/
@@ -457,6 +462,8 @@
 		}
 	}
 
+	let help_doc = "";
+	
 	let config_dir = '';
 	/**@type {number}*/
 	let save_interval_timer;
@@ -490,6 +497,13 @@
 				write_toml(false, true)
 			}
 		}, 10000);
+
+		fetch("help.md").then((res) => {
+			// console.log(`fetch help ${res}`)
+			res.text().then((t) => {
+				help_doc = t
+			})
+		})
 		// appWindow.once("ready", async () => {
 		// 	await create_blank_layers("app window ready")
 		// selected_size = layout_sizes[0]
@@ -635,6 +649,10 @@
 			on:click={() => (active_tab = 'tab3')}
 			class="{active_tab == 'tab3' ? 'active_tab' : 'inactive_tab'} tab">Hand assignment</button
 		>
+		<button
+			on:click={() => (active_tab = 'tab4')}
+			class="{active_tab == 'tab4' ? 'active_tab' : 'inactive_tab'} tab">Help</button
+		>
 	</div>
 	<div bind:this={container} on:input={handleChange} on:change={handleChange}>
 		<div class="tab_contents">
@@ -669,211 +687,223 @@
 						{is_size_from_config}
 					/>
 				</div>
+				<div class={active_tab == "tab4" ? "tabshow" : "tabhide"}>
+					{#if help_doc}
+						<div class="help_doc">
+						<svelte:component
+							this={tab_components["tab4"]}
+							source={help_doc}
+						/>
+						</div>
+					{/if}
+				</div>
 			</div>
 
-			<div class="options {options_display}">
-				<table>
-					<tr><th style="font-size: 32px;">Options</th></tr>
-					<tr>
-						<td>num_threads</td>
-						<td>
-							<input type="range" min="1" max="24" bind:value={num_threads} />
-							<input type="number" min="1" max="24" bind:value={num_threads} />
-						</td>
-					</tr>
-				</table>
-				<table>
-					{#if genetic_options}
-						{@const mutation_total = genetic_options.swap_weight + genetic_options.replace_weight}
-						<tr><th>Genetic options</th><th></th></tr>
-						{#each Object.entries(genetic_options) as [key, value]}
-							<tr>
-								<td>{key}</td>
-								<td>
-									{#if key == 'population_size'}
-										<input
-											type="range"
-											min="0"
-											max="10000"
-											step="100"
-											bind:value={genetic_options[key]}
-										/>
-										<input type="number" bind:value={genetic_options[key]} />
-									{:else if key == 'generation_count'}
-										<input
-											type="range"
-											min="0"
-											max="500"
-											step="10"
-											bind:value={genetic_options[key]}
-										/>
-										<input type="number" bind:value={genetic_options[key]} />
-									{:else if key == 'fitness_cutoff'}
-										<input
-											type="range"
-											min="0"
-											max="1"
-											step="0.05"
-											bind:value={genetic_options[key]}
-										/>
-										<input type="number" bind:value={genetic_options[key]} />
-									{:else if key == 'swap_weight' || key == 'replace_weight'}
-										<input
-											type="range"
-											min="0"
-											max="10"
-											step="1"
-											bind:value={genetic_options[key]}
-										/>
-										<input type="number" bind:value={genetic_options[key]} />
-									{:else}
-										{value}
-									{/if}
-								</td>
-							</tr>
-						{/each}
-						<tr><td colspan="2">
-							{((genetic_options.swap_weight / mutation_total) * 100).toFixed(0)}% swaps, {((genetic_options.replace_weight / mutation_total) *
-							100).toFixed(0)}% replacements
-						</td></tr>
-					{/if}
-				</table>
-				<table>
-					{#if keycode_options}
-						<tr><th>Keycode options</th></tr>
-						{#each Object.entries(keycode_options) as [key, value]}
-							<tr>
-								<td>{key}</td>
-								<td>
-									{#if key != 'explicit_inclusions'}
-										<label class="switch">
-											<input
-												type="checkbox"
-												bind:checked={keycode_options[key]}
-												on:change={recompute_valid_keycodes}
-											/>
-											<span class="slider round"></span>
-										</label>
-										<!-- {key}: <input type="checkbox" bind:checked={keycode_options[key]} on:change={recompute_valid_keycodes} /> <br> -->
-									{:else}
-										<!-- {#key keycode_options.explicit_inclusions} -->
-										{#each keycode_options.explicit_inclusions as code, ei_ind}
-											<select
-												bind:value={keycode_options.explicit_inclusions[ei_ind]}
-												on:change={recompute_valid_keycodes}
-											>
-												{#each all_keycodes as keycode}
-													<option value="_{keycode}">{keycode == 'NO' ? '' : keycode}</option>
-												{/each}
-											</select><button on:click={() => remove_explicit_inclusion(ei_ind)}>x</button>
-										{/each}
-
-										<button class="plus_button" on:click={add_explicit_inclusion}>+</button>
-										<!-- {/key} -->
-									{/if}
-								</td>
-							</tr>
-						{/each}
+			{#if active_tab != "tab4"}
+				<div class="options {options_display}">
+					<table>
+						<tr><th style="font-size: 32px;">Options</th></tr>
 						<tr>
-							<td colspan="2">
-							<div style="width: 750px; word-wrap: normal;">
-								Keycode list: <span>{keycode_display.join(', ')}</span>
-							</div>
+							<td>num_threads</td>
 							<td>
+								<input type="range" min="1" max="24" bind:value={num_threads} />
+								<input type="number" min="1" max="24" bind:value={num_threads} />
+							</td>
 						</tr>
-					{/if}
-				</table>
-				<table>
-					{#if dataset_options}
-						<tr><th>Dataset options</th></tr>
-						{#each Object.entries(dataset_options) as [key, value]}
-							<tr>
-								<td>{key}</td>
-								<td>
-									{#if key == 'dataset_paths'}
-										<div style="width: 400px; word-wrap: break-word;">
-											{#each dataset_options['dataset_paths'] as dir, d_ind}
-												{dir}<button>Browse</button>
+					</table>
+					<table>
+						{#if genetic_options}
+							{@const mutation_total = genetic_options.swap_weight + genetic_options.replace_weight}
+							<tr><th>Genetic options</th><th></th></tr>
+							{#each Object.entries(genetic_options) as [key, value]}
+								<tr>
+									<td>{key}</td>
+									<td>
+										{#if key == 'population_size'}
+											<input
+												type="range"
+												min="0"
+												max="10000"
+												step="100"
+												bind:value={genetic_options[key]}
+											/>
+											<input type="number" bind:value={genetic_options[key]} />
+										{:else if key == 'generation_count'}
+											<input
+												type="range"
+												min="0"
+												max="500"
+												step="10"
+												bind:value={genetic_options[key]}
+											/>
+											<input type="number" bind:value={genetic_options[key]} />
+										{:else if key == 'fitness_cutoff'}
+											<input
+												type="range"
+												min="0"
+												max="1"
+												step="0.05"
+												bind:value={genetic_options[key]}
+											/>
+											<input type="number" bind:value={genetic_options[key]} />
+										{:else if key == 'swap_weight' || key == 'replace_weight'}
+											<input
+												type="range"
+												min="0"
+												max="10"
+												step="1"
+												bind:value={genetic_options[key]}
+											/>
+											<input type="number" bind:value={genetic_options[key]} />
+										{:else}
+											{value}
+										{/if}
+									</td>
+								</tr>
+							{/each}
+							<tr><td colspan="2">
+								{((genetic_options.swap_weight / mutation_total) * 100).toFixed(0)}% swaps, {((genetic_options.replace_weight / mutation_total) *
+								100).toFixed(0)}% replacements
+							</td></tr>
+						{/if}
+					</table>
+					<table>
+						{#if keycode_options}
+							<tr><th>Keycode options</th></tr>
+							{#each Object.entries(keycode_options) as [key, value]}
+								<tr>
+									<td>{key}</td>
+									<td>
+										{#if key != 'explicit_inclusions'}
+											<label class="switch">
+												<input
+													type="checkbox"
+													bind:checked={keycode_options[key]}
+													on:change={recompute_valid_keycodes}
+												/>
+												<span class="slider round"></span>
+											</label>
+											<!-- {key}: <input type="checkbox" bind:checked={keycode_options[key]} on:change={recompute_valid_keycodes} /> <br> -->
+										{:else}
+											<!-- {#key keycode_options.explicit_inclusions} -->
+											{#each keycode_options.explicit_inclusions as code, ei_ind}
+												<select
+													bind:value={keycode_options.explicit_inclusions[ei_ind]}
+													on:change={recompute_valid_keycodes}
+												>
+													{#each all_keycodes as keycode}
+														<option value="_{keycode}">{keycode == 'NO' ? '' : keycode}</option>
+													{/each}
+												</select><button on:click={() => remove_explicit_inclusion(ei_ind)}>x</button>
 											{/each}
-										</div>
-									{:else if key == "dataset_weights"}
-										{#each dataset_options['dataset_weights'] as weight, d_ind}
-											<input type="number" bind:value={weight} />
-										{/each}
-									{:else if key == "max_ngram_size"}
-										<input
-											type="range"
-											min="1"
-											max="5"
-											step="1"
-											bind:value={dataset_options[key]}
-										/>
-										<input type="number" bind:value={dataset_options[key]} />
-									{:else if key == "top_n_ngrams_to_take"}
-										<input
-											type="range"
-											min="0"
-											max="100"
-											step="10"
-											bind:value={dataset_options[key]}
-										/>
-										<input type="number" bind:value={dataset_options[key]} />
-									{:else}
-										{value}
-									{/if}
-								</td>
-							</tr>
-						{/each}
-					{/if}
-				</table>
-				<table>
-					{#if score_options}
-						<tr><th>Scoring options</th></tr>
-						{#each Object.entries(score_options) as [key, value]}
-							<tr>
-								<td>{key == "finger_roll_same_row_reduction_factor" ? "same_row_reduction_factor" : key}</td>
-								<td>
-									{#if key == "hand_alternation_weight" || key == "finger_roll_weight"}
-										<input
-											type="range"
-											min="1"
-											max="10"
-											step="1"
-											bind:value={score_options[key]}
-										/>
-										<input type="number" bind:value={score_options[key]} />
-									{:else if key == "hand_alternation_reduction_factor" || key == "finger_roll_reduction_factor" || key == "finger_roll_same_row_reduction_factor"}
-										<input
-											type="range"
-											min="0"
-											max="1"
-											step="0.05"
-											bind:value={score_options[key]}
-										/>
-										<input type="number" bind:value={score_options[key]} />
-									{:else}
-										<input
-											type="range"
-											min="1"
-											max="10"
-											step="0.05"
-											bind:value={score_options[key]}
-										/>
-										<input type="number" bind:value={score_options[key]} />
-									{/if}
-								</td>
-							</tr>
+
+											<button class="plus_button" on:click={add_explicit_inclusion}>+</button>
+											<!-- {/key} -->
+										{/if}
+									</td>
+								</tr>
+							{/each}
 							<tr>
 								<td colspan="2">
-								{#if key == "finger_roll_weight"}
-									<div style="margin-top: 10px; margin-bottom: 10px;">The importance of hand alternation is <br /> {(score_options.hand_alternation_weight / score_options.finger_roll_weight).toFixed(2)}x that of finger rolling.</div>
-								{/if}
-								</td>
+								<div style="width: 750px; word-wrap: normal;">
+									Keycode list: <span>{keycode_display.join(', ')}</span>
+								</div>
+								<td>
 							</tr>
-						{/each}
-					{/if}
-				</table>
-			</div>
+						{/if}
+					</table>
+					<table>
+						{#if dataset_options}
+							<tr><th>Dataset options</th></tr>
+							{#each Object.entries(dataset_options) as [key, value]}
+								<tr>
+									<td>{key}</td>
+									<td>
+										{#if key == 'dataset_paths'}
+											<div style="width: 400px; word-wrap: break-word;">
+												{#each dataset_options['dataset_paths'] as dir, d_ind}
+													{dir}<button>Browse</button>
+												{/each}
+											</div>
+										{:else if key == "dataset_weights"}
+											{#each dataset_options['dataset_weights'] as weight, d_ind}
+												<input type="number" bind:value={weight} />
+											{/each}
+										{:else if key == "max_ngram_size"}
+											<input
+												type="range"
+												min="1"
+												max="5"
+												step="1"
+												bind:value={dataset_options[key]}
+											/>
+											<input type="number" bind:value={dataset_options[key]} />
+										{:else if key == "top_n_ngrams_to_take"}
+											<input
+												type="range"
+												min="0"
+												max="100"
+												step="10"
+												bind:value={dataset_options[key]}
+											/>
+											<input type="number" bind:value={dataset_options[key]} />
+										{:else}
+											{value}
+										{/if}
+									</td>
+								</tr>
+							{/each}
+						{/if}
+					</table>
+					<table>
+						{#if score_options}
+							<tr><th>Scoring options</th></tr>
+							{#each Object.entries(score_options) as [key, value]}
+								<tr>
+									<td>{key == "finger_roll_same_row_reduction_factor" ? "same_row_reduction_factor" : key}</td>
+									<td>
+										{#if key == "hand_alternation_weight" || key == "finger_roll_weight"}
+											<input
+												type="range"
+												min="1"
+												max="10"
+												step="1"
+												bind:value={score_options[key]}
+											/>
+											<input type="number" bind:value={score_options[key]} />
+										{:else if key == "hand_alternation_reduction_factor" || key == "finger_roll_reduction_factor" || key == "finger_roll_same_row_reduction_factor"}
+											<input
+												type="range"
+												min="0"
+												max="1"
+												step="0.05"
+												bind:value={score_options[key]}
+											/>
+											<input type="number" bind:value={score_options[key]} />
+										{:else}
+											<input
+												type="range"
+												min="1"
+												max="10"
+												step="0.05"
+												bind:value={score_options[key]}
+											/>
+											<input type="number" bind:value={score_options[key]} />
+										{/if}
+									</td>
+								</tr>
+								<tr>
+									<td colspan="2">
+									{#if key == "finger_roll_weight"}
+										<div style="margin-top: 10px; margin-bottom: 10px;">The importance of hand alternation is <br /> {(score_options.hand_alternation_weight / score_options.finger_roll_weight).toFixed(2)}x that of finger rolling.</div>
+									{/if}
+									</td>
+								</tr>
+							{/each}
+						{/if}
+					</table>
+				</div>
+			{/if}
 		</div>
 	</div>
 {/if}
@@ -1047,5 +1077,9 @@
 
 	.slider.round:before {
 		border-radius: 2px;
+	}
+
+	.help_doc {
+		margin: 2rem;
 	}
 </style>
