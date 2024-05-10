@@ -10,9 +10,7 @@
 	export let layout_size;
 	/**@type {boolean}*/
 	export let is_size_from_config;
-	/**@type {boolean}*/
-	export let saved;
-
+	
 	let hands = ['left', 'right'];
 	let fingers = ['thumb', 'index', 'middle', 'ring', 'pinkie', 'joint'];
 

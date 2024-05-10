@@ -658,7 +658,6 @@
 						bind:effort_layer
 						bind:layout_size={selected_size}
 						{is_size_from_config}
-						bind:saved
 					/>
 				</div>
 				<div class={active_tab == 'tab3' ? 'tabshow' : 'tabhide'}>
@@ -668,7 +667,6 @@
 						bind:phalanx_layer
 						bind:layout_size={selected_size}
 						{is_size_from_config}
-						bind:saved
 					/>
 				</div>
 			</div>
