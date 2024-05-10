@@ -325,11 +325,11 @@
 					datasetOptions: dataset_options,
 					scoreOptions: score_options
 				});
+				saved = true
 			}
 		} catch (e) {
 			alert(e);
 		}
-		saved = true;
 	}
 
 	/**
@@ -520,6 +520,7 @@
 	async function run_optimizer() {
 		await write_toml(false, true)
 		await invoke("run_optimizer", {filename: `${config_dir}/autosave.toml`})
+		
 	}
 </script>
 
