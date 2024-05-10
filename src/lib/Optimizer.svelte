@@ -519,7 +519,10 @@
 
 	async function run_optimizer() {
 		await write_toml(false, true)
-		await invoke("run_optimizer", {filename: `${config_dir}/autosave.toml`})
+		invoke("run_optimizer", {filename: `${config_dir}/autosave.toml`}).then((res) => {}).catch((e) => {
+			alert(e)
+			console.error(e)
+		})
 		
 	}
 </script>
