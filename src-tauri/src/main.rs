@@ -67,7 +67,6 @@ fn get_layout_presets() -> Vec<(usize, usize)> {
 	// for (i, size) in sizes.iter().enumerate() {
 	// 	out.insert(i, *size);
 	// }
-	
 	sizes
 }
 

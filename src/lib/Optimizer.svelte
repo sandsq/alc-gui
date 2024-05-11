@@ -11,8 +11,8 @@
 	import SvelteMarkdown from 'svelte-markdown';
 	import { Tooltip, tooltip } from "@svelte-plugins/tooltips";
 
-	const keycode_options_info = "Options to include sets of keycodes so that the user doesn't have to specify every one manually. These settings define how text is translated to keycodes. For example, if \"include_number_symbols\" is NOT selected, then any !, @, etc. appearing in the text will translated into shift+1, shift+2, etc.; on the other hand, if the option is selected, then keycodes for !, @, etc. will be added to the layout so that they can be typed directly. All non-shifted keycodes need to appear in the layout or some ngrams won't be typeable -- specifically, if \"include_numbers\" is NOT selected, the user must position numbers in the layout themselves. This is intended, as most users want numbers to appear in order, but the optimizer cannot currently apply such a constraint. Remember locks can be used to ensure that keys do not move!"
-	const keycode_list_info = "List of keycodes constructed from the given options. These keycodes are what will fill empty keys in the layout so that optimization can proceed."
+	const keycode_options_info = "Options to include sets of keycodes so that the user doesn't have to specify every one manually. These settings define how text is translated to keycodes. For example, if \"include_number_symbols\" is NOT selected, then any !, @, etc. appearing in the text will translated into shift+1, shift+2, etc.; on the other hand, if the option is selected, then keycodes for !, @, etc. will be added to the layout so that they can be typed directly. All non-shifted keycodes need to appear in the layout or some ngrams won't be typeable. Remember locks can be used to ensure that keys do not move!"
+	const keycode_list_info = "List of keycodes constructed from the given options. Text will be translated to these keycodes and they are what will fill empty keys in the layout so that optimization can proceed."
 
 	/**@type {Object.<string, string>}*/
 	let option_descriptions;
@@ -868,7 +868,7 @@
 							<tr><th>Scoring options</th></tr>
 							{#each Object.entries(score_options) as [key, value]}
 								<tr>
-									<td>{key == "finger_roll_same_row_reduction_factor" ? "same_row_reduction_factor" : key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></td>
+									<td>{key == "finger_roll_same_row_reduction_factor" ? "same_row_reduction_factor" : key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 450 }}>&nbsp;<u >?</u>&nbsp;</span></td>
 									<td>
 										{#if key == "hand_alternation_weight" || key == "finger_roll_weight"}
 											<input
