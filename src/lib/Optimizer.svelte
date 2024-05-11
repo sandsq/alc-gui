@@ -9,8 +9,13 @@
 	import { appWindow } from '@tauri-apps/api/window';
 	import { layer_switch_regex } from './utils';
 	import SvelteMarkdown from 'svelte-markdown';
+	import { Tooltip, tooltip } from "@svelte-plugins/tooltips";
 
-	
+	const keycode_options_info = "Options to include sets of keycodes so that the user doesn't have to specify every one manually. These settings define how text is translated to keycodes. For example, if \"include_number_symbols\" is NOT selected, then any !, @, etc. appearing in the text will translated into shift+1, shift+2, etc.; on the other hand, if the option is selected, then keycodes for !, @, etc. will be added to the layout so that they can be typed directly. All non-shifted keycodes need to appear in the layout or some ngrams won't be typeable -- specifically, if \"include_numbers\" is NOT selected, the user must position numbers in the layout themselves. This is intended, as most users want numbers to appear in order, but the optimizer cannot currently apply such a constraint. Remember locks can be used to ensure that keys do not move!"
+	const keycode_list_info = "List of keycodes constructed from the given options. These keycodes are what will fill empty keys in the layout so that optimization can proceed."
+
+	/**@type {Object.<string, string>}*/
+	let option_descriptions;
 
 	/**@type {keyof TabComponentMap}*/
 	let active_tab = 'tab1';
@@ -491,6 +496,9 @@
 		});
 		get_default_dataset_options();
 		get_default_score_options();
+		invoke("get_option_descriptions").then((res) => {
+			option_descriptions = res
+		})
 
 		save_interval_timer = setInterval(() => {
 			if (!saved) {
@@ -699,12 +707,12 @@
 				</div>
 			</div>
 
-			{#if active_tab != "tab4"}
+			{#if option_descriptions && active_tab != "tab4"}
 				<div class="options {options_display}">
 					<table>
 						<tr><th style="font-size: 32px;">Options</th></tr>
 						<tr>
-							<td>num_threads</td>
+							<td>num_threads <u class="tooltip_div" use:tooltip={{ content: option_descriptions["num_threads"], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>?</u></td>
 							<td>
 								<input type="range" min="1" max="24" bind:value={num_threads} />
 								<input type="number" min="1" max="24" bind:value={num_threads} />
@@ -717,7 +725,7 @@
 							<tr><th>Genetic options</th><th></th></tr>
 							{#each Object.entries(genetic_options) as [key, value]}
 								<tr>
-									<td>{key}</td>
+									<td>{key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></td>
 									<td>
 										{#if key == 'population_size'}
 											<input
@@ -769,10 +777,10 @@
 					</table>
 					<table>
 						{#if keycode_options}
-							<tr><th>Keycode options</th></tr>
+							<tr><th>Keycode options<span class="tooltip_div" use:tooltip={{ content: keycode_options_info, position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></th></tr>
 							{#each Object.entries(keycode_options) as [key, value]}
 								<tr>
-									<td>{key}</td>
+									<td>{key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></td>
 									<td>
 										{#if key != 'explicit_inclusions'}
 											<label class="switch">
@@ -806,7 +814,7 @@
 							<tr>
 								<td colspan="2">
 								<div style="width: 750px; word-wrap: normal;">
-									Keycode list: <span>{keycode_display.join(', ')}</span>
+									Keycode list<span class="tooltip_div" use:tooltip={{ content: keycode_list_info, position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u>?</u>&nbsp;</span><span style="margin-left: 20px;">{keycode_display.join(', ')}</span>
 								</div>
 								<td>
 							</tr>
@@ -817,7 +825,7 @@
 							<tr><th>Dataset options</th></tr>
 							{#each Object.entries(dataset_options) as [key, value]}
 								<tr>
-									<td>{key}</td>
+									<td>{key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></td>
 									<td>
 										{#if key == 'dataset_paths'}
 											<div style="width: 400px; word-wrap: break-word;">
@@ -860,7 +868,7 @@
 							<tr><th>Scoring options</th></tr>
 							{#each Object.entries(score_options) as [key, value]}
 								<tr>
-									<td>{key == "finger_roll_same_row_reduction_factor" ? "same_row_reduction_factor" : key}</td>
+									<td>{key == "finger_roll_same_row_reduction_factor" ? "same_row_reduction_factor" : key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></td>
 									<td>
 										{#if key == "hand_alternation_weight" || key == "finger_roll_weight"}
 											<input
@@ -1081,5 +1089,15 @@
 
 	.help_doc {
 		margin: 2rem;
+	}
+
+	.tooltip_div {
+		cursor: pointer;
+	}
+	:global(.tooltip) {
+		--tooltip-font-family: Ubuntu Mono, monospace;
+		--tooltip-font-size: 20px;
+		--tooltip-color: #f2e5bc;
+		--tooltip-background-color: #076678; // $foreground0;
 	}
 </style>
