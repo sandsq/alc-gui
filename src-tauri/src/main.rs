@@ -84,7 +84,13 @@ fn get_all_keycodes() -> Vec<String> {
 fn process_config(_app_handle: tauri::AppHandle, config_file: String) -> Result<LayoutOptimizerTomlAdapter, AlcError> {
 // Result<LayoutOptimizerTomlAdapter, AlcError> {
 	println!("received {} as the config file to process", config_file);
-	let lo = LayoutOptimizerTomlAdapter::try_from_toml_file(config_file.as_str())?;
+	let lo: LayoutOptimizerTomlAdapter;
+	if Path::new(config_file.as_str()).exists() {
+		lo = LayoutOptimizerTomlAdapter::try_from_toml_file(config_file.as_str())?;
+	} else {
+		lo = LayoutOptimizerTomlAdapter::try_from_toml_string(config_file.as_str())?;
+	}
+	
 	// {
 	// 	Ok(v) => v,
 	// 	Err(e) => {

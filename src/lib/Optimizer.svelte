@@ -14,8 +14,8 @@
 	
 	let visible = false
 
-	const keycode_options_info = "Options to include sets of keycodes so that the user doesn't have to specify every one manually. These settings define how text is translated to keycodes. For example, if \"include_number_symbols\" is NOT selected, then any !, @, etc. appearing in the text will translated into shift+1, shift+2, etc.; on the other hand, if the option is selected, then keycodes for !, @, etc. will be added to the layout so that they can be typed directly. All non-shifted keycodes need to appear in the layout or some ngrams won't be typeable. Remember locks can be used to ensure that keys do not move!"
-	const keycode_list_info = "List of keycodes constructed from the given options. Text will be translated to these keycodes and they are what will fill empty keys in the layout so that optimization can proceed."
+	const keycode_options_info = "Options to specify the set of keycodes to which text should be translated; included in this specification are which keycodes should be treated as shifted versions of their base keycodes (e.g., should \"plus\" get its own keycode or should it be treated as \"shift + equals\"). The shift key itself and all non-shifted keycodes need to appear in the layout or some ngrams won't be typeable."
+	const keycode_list_info = "List of keycodes constructed from the given options. Unless a given keycode is already present in the layout, it will be randomly placed into an empty slot in the layout to form the first generation. Dataset text is translated into these keycodes. This means that if the user wishes to use, for example, \"&\" (AMPR) without needing to do \"shift + 7\", AMPR should appear in this list. Or another way, if AMPR is NOT in this list, then dataset text containing \"&\" will be translated to \"shift + 7\". Thus, key placement optimization would only be performed on SFT and 7, not AMPR."
 
 	/**@type {Object.<string, string>}*/
 	let option_descriptions;
@@ -74,8 +74,10 @@
 	/**@type {any}*/
 	let score_options;
 
-	/**@param {boolean} show_dialog*/
-	async function open_toml(show_dialog) {
+	/**@param {boolean} show_dialog
+	 * @param {string} content_to_open
+	*/
+	async function open_toml(show_dialog, content_to_open) {
 		/**@type {string | string[] | null}*/
 		let opened_file;
 		if (show_dialog) {
@@ -89,7 +91,7 @@
 				]
 			});
 		} else {
-			opened_file = selected_toml_file;
+			opened_file = content_to_open;
 		}
 		if (opened_file !== null) {
 			invoke('process_config', { configFile: opened_file })
@@ -109,6 +111,7 @@
 					dataset_options = res.layout_optimizer_config.dataset_options;
 					score_options = res.layout_optimizer_config.score_options;
 					// is_size_from_config = false
+					saved = false
 					console.log(`successfully loaded ${opened_file}`);
 				})
 				.catch((e) => {
@@ -470,6 +473,20 @@
 		}
 	}
 
+	/**@type {string[]}*/
+	let presets = ["4x10", "ferris_sweep", "4x12", "5x15"]
+	/**@param {string} preset_name*/
+	async function fetch_preset_by_name(preset_name) {
+		fetch(`${preset_name}.toml`).then((res) => {
+			if (res.ok) {
+				res.text().then((t) => {
+					open_toml(false, t)
+				})
+			} else {
+				alert("preset doesn't exist")
+			}
+		})
+	}
 
 	let optimizing_wait_messages = ["Optimizing.", "Optimizing..", "Optimizing..."]
 	/**@type {number}*/
@@ -487,10 +504,11 @@
 		}, 1000);
 		invoke('get_config_dir').then((res) => {
 			config_dir = res;
-			selected_toml_file = `${config_dir}/autosave.toml`;
-			invoke('does_file_exist', { filename: selected_toml_file }).then((res) => {
+			let autosaved_file = `${config_dir}/autosave.toml`;
+			// selected_toml_file = 
+			invoke('does_file_exist', { filename: autosaved_file }).then((res) => {
 				if (res) {
-					open_toml(false).then((res) => {
+					open_toml(false, autosaved_file).then((res) => {
 						console.log(JSON.stringify(layout));
 						console.log(`size from config ${is_size_from_config}`);
 					});
@@ -528,12 +546,14 @@
 		// 	await create_blank_layers("app window ready")
 		// selected_size = layout_sizes[0]
 		// })
+		
 	});
 	onDestroy(() => {
 		clearInterval(save_interval_timer)
 		clearInterval(roller)
 	});
 
+	
 	let container;
 	/**@param {any} event*/
 	function handleChange(event) {
@@ -561,8 +581,8 @@
 		optimizer_run = invoke("run_optimizer", {filename: `${config_dir}/autosave.toml`}).then(async (res) => {
 			let show_final_result = await confirm(`Load best layout? A copy can be found at ${res}`)
 			if (show_final_result) {
-				selected_toml_file = res
-				open_toml(false)
+				// selected_toml_file = res
+				open_toml(false, res)
 				saved = false
 			}
 		}).catch((e) => {
@@ -573,76 +593,17 @@
 	
 </script>
 
-<div class="debug">
-	<div class="column1">
-		<h1>Debug section</h1>
-		<p>size: {selected_size}</p>
-		<p>file: {selected_toml_file}</p>
-		<p>config dir: {config_dir}</p>
-		<p>tab: {active_tab}</p>
-	</div>
-	<div class="column2">
-		{#if layout}
-			{#each layout as layer}
-				<table>
-					{#each layer as row}
-						<tr>
-							{#each row as col}
-								<td>{col.keycode}_{+col.locked}{+col.symmetric}</td>
-							{/each}
-						</tr>
-					{/each}
-				</table>
-			{/each}
-		{/if}
-
-		{#if effort_layer}
-			<table>
-				{#each effort_layer as row}
-					<tr>
-						{#each row as col}
-							<td>{col}</td>
-						{/each}
-					</tr>
-				{/each}
-			</table>
-		{/if}
-
-		{#if phalanx_layer}
-			<table>
-				{#each phalanx_layer as row}
-					<tr>
-						{#each row as col}
-							<td>{col.join(':')}</td>
-						{/each}
-					</tr>
-				{/each}
-			</table>
-		{/if}
-	</div>
-</div>
-
-<p>
-	Config dir: <input type="text" bind:value={config_dir} />
-	<button on:click={() => write_toml(true, false)}>Save as</button>
-</p>
 <p>autosaved status: {saved}</p>
-<button on:click={() => {run_optimizer()}}>Optimize!</button>
-{#await optimizer_run}
-  <!-- <p transition:fade
-     on:introstart="{() => visible = false}"
-     on:outroend="{() => visible = true}">
-  ...waiting </p> -->
-  <span transition:slide>{optimizing_wait_messages[index]}</span>
-{:then value}
-	<span>Done optimizing</span>
-{/await}
-<h1>Layout section</h1>
+
 <div>
-	<button on:click={() => open_toml(true)}>Load config</button>
-	or choose layout size:
-	<!-- {#await get_sizes then} -->
-	<!-- bind:value={selected_size} -->
+	<button on:click={() => open_toml(true, "")}>Load config</button>
+	<br />
+	or choose preset
+	{#each presets as preset}
+		<button on:click={() => fetch_preset_by_name(preset)}>{preset}</button>&nbsp;
+	{/each}
+	<br />
+	or choose size and layers:
 	<select
 		on:change={() => {
 			is_size_from_config = false;
@@ -655,8 +616,6 @@
 			<option value={size}>{size[0]} x {size[1]}</option>
 		{/each}
 	</select>
-	<!-- {/await} -->
-	and number of layers:
 	<select 
 		on:change={() => {saved = false;}}
 		bind:value={selected_num_layers}>
@@ -664,9 +623,23 @@
 			<option value={i + 1}>{i + 1}</option>
 		{/each}
 	</select>
+	<!-- <button on:click={() => open_toml(false, ferris_sweep_preset)}>Load test</button> -->
 </div>
 
+
 <br />
+
+<button on:click={() => {run_optimizer()}}>Optimize!</button>
+{#await optimizer_run}
+  <!-- <p transition:fade
+     on:introstart="{() => visible = false}"
+     on:outroend="{() => visible = true}">
+  ...waiting </p> -->
+  <span transition:slide>&nbsp; {optimizing_wait_messages[index]}</span>
+{:then value}
+	<span>&nbsp; Not currently optimizing</span>
+{/await}
+
 <br />
 
 {#if selected_size}
@@ -735,6 +708,7 @@
 
 			{#if option_descriptions && active_tab != "tab4"}
 				<div class="options {options_display}">
+					<button on:click={() => write_toml(true, false)}>Save layout and options as</button>
 					<table>
 						<tr><th style="font-size: 32px;">Options</th></tr>
 						<tr>
@@ -805,6 +779,7 @@
 						{#if keycode_options}
 							<tr><th>Keycode options<span class="tooltip_div" use:tooltip={{ content: keycode_options_info, position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></th></tr>
 							{#each Object.entries(keycode_options) as [key, value]}
+								{#if key != "include_numbers"}
 								<tr>
 									<td>{key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></td>
 									<td>
@@ -836,6 +811,12 @@
 										{/if}
 									</td>
 								</tr>
+								<tr><td colspan="2">
+									{#if key == "include_alphas"}
+										Numbers should be added and locked to the layout<br />by the user -- constraining numbers to be in order<br />is currently not possible.
+									{/if}
+								</td></tr>
+								{/if}
 							{/each}
 							<tr>
 								<td colspan="2">
@@ -899,7 +880,7 @@
 										{#if key == "hand_alternation_weight" || key == "finger_roll_weight"}
 											<input
 												type="range"
-												min="1"
+												min="0"
 												max="10"
 												step="1"
 												bind:value={score_options[key]}
@@ -942,10 +923,59 @@
 	</div>
 {/if}
 
+<div class="debug">
+	<h1>Debug section</h1>
+	<p>size: {selected_size}</p>
+	<p>file: {selected_toml_file}</p>
+	<p>config dir: {config_dir}</p>
+	<p>tab: {active_tab}</p>
+	{#if layout}
+		{#each layout as layer}
+			<table>
+				{#each layer as row}
+					<tr>
+						{#each row as col}
+							<td>{col.keycode}_{+col.locked}{+col.symmetric}</td>
+						{/each}
+					</tr>
+				{/each}
+			</table>
+		{/each}
+	{/if}
+
+	{#if effort_layer}
+		<table>
+			{#each effort_layer as row}
+				<tr>
+					{#each row as col}
+						<td>{col}</td>
+					{/each}
+				</tr>
+			{/each}
+		</table>
+	{/if}
+
+	{#if phalanx_layer}
+		<table>
+			{#each phalanx_layer as row}
+				<tr>
+					{#each row as col}
+						<td>{col.join(':')}</td>
+					{/each}
+				</tr>
+			{/each}
+		</table>
+	{/if}
+</div>
+
+
 <style lang="scss">
 	@use '../styles/colors.scss' as *;
 	:global(*) {
 		color: $text;
+	}
+	.debug {
+		margin-top: 40px;
 	}
 	.debug:after {
 		content: '';
@@ -971,7 +1001,7 @@
 		border-radius: 0px 10px 10px 10px;
 		// -webkit-border-radius: 0px 10px 10px 10px;
 		// -moz-border-radius: 0px 10px 10px 10px;
-		padding: 10px 10px 10px 10px;
+		padding: 10px 10px 20px 10px;
 	}
 
 	.layout {
@@ -1007,6 +1037,7 @@
 	}
 	// these are the tabs themselves
 	.tabs {
+		margin-top: 20px;
 		margin-bottom: -3px;
 		margin-left: 3px;
 	}
