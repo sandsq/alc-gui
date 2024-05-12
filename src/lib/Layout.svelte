@@ -355,7 +355,7 @@
 									{#each keycodes as keycode}
 										<option value={keycode}>{keycode == 'NO' ? '' : keycode}</option>
 									{/each}
-								</select>
+									</select>
 
 								<span class="key_flag {layout[n][i][j].locked ? 'locked' : 'unlocked'}">
 									<button

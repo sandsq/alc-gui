@@ -10,6 +10,9 @@
 	import { layer_switch_regex } from './utils';
 	import SvelteMarkdown from 'svelte-markdown';
 	import { Tooltip, tooltip } from "@svelte-plugins/tooltips";
+	import { fade, slide } from 'svelte/transition'
+	
+	let visible = false
 
 	const keycode_options_info = "Options to include sets of keycodes so that the user doesn't have to specify every one manually. These settings define how text is translated to keycodes. For example, if \"include_number_symbols\" is NOT selected, then any !, @, etc. appearing in the text will translated into shift+1, shift+2, etc.; on the other hand, if the option is selected, then keycodes for !, @, etc. will be added to the layout so that they can be typed directly. All non-shifted keycodes need to appear in the layout or some ngrams won't be typeable. Remember locks can be used to ensure that keys do not move!"
 	const keycode_list_info = "List of keycodes constructed from the given options. Text will be translated to these keycodes and they are what will fill empty keys in the layout so that optimization can proceed."
@@ -467,12 +470,21 @@
 		}
 	}
 
+
+	let optimizing_wait_messages = ["Optimizing.", "Optimizing..", "Optimizing..."]
+	/**@type {number}*/
+	let roller;
+	let index = 0;
 	let help_doc = "";
 	
 	let config_dir = '';
 	/**@type {number}*/
 	let save_interval_timer;
 	onMount(() => {
+		roller = setInterval(() => {
+			if (index === optimizing_wait_messages.length - 1) index = 0;
+			else index++;
+		}, 1000);
 		invoke('get_config_dir').then((res) => {
 			config_dir = res;
 			selected_toml_file = `${config_dir}/autosave.toml`;
@@ -517,7 +529,10 @@
 		// selected_size = layout_sizes[0]
 		// })
 	});
-	onDestroy(() => clearInterval(save_interval_timer));
+	onDestroy(() => {
+		clearInterval(save_interval_timer)
+		clearInterval(roller)
+	});
 
 	let container;
 	/**@param {any} event*/
@@ -539,9 +554,11 @@
 		}
 	}
 
+	/**@type {Promise<void>}*/
+	let optimizer_run;
 	async function run_optimizer() {
 		await write_toml(false, true)
-		invoke("run_optimizer", {filename: `${config_dir}/autosave.toml`}).then(async (res) => {
+		optimizer_run = invoke("run_optimizer", {filename: `${config_dir}/autosave.toml`}).then(async (res) => {
 			let show_final_result = await confirm(`Load best layout? A copy can be found at ${res}`)
 			if (show_final_result) {
 				selected_toml_file = res
@@ -549,11 +566,11 @@
 				saved = false
 			}
 		}).catch((e) => {
-			alert(e)
+			alert(`something went wrong: ${e}`)
 			console.error(e)
 		})
-		
 	}
+	
 </script>
 
 <div class="debug">
@@ -610,7 +627,16 @@
 	<button on:click={() => write_toml(true, false)}>Save as</button>
 </p>
 <p>autosaved status: {saved}</p>
-<button on:click={run_optimizer}>Optimize!</button>
+<button on:click={() => {run_optimizer()}}>Optimize!</button>
+{#await optimizer_run}
+  <!-- <p transition:fade
+     on:introstart="{() => visible = false}"
+     on:outroend="{() => visible = true}">
+  ...waiting </p> -->
+  <span transition:slide>{optimizing_wait_messages[index]}</span>
+{:then value}
+	<span>Done optimizing</span>
+{/await}
 <h1>Layout section</h1>
 <div>
 	<button on:click={() => open_toml(true)}>Load config</button>

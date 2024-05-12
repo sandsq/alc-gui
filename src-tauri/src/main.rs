@@ -9,7 +9,6 @@ use alc::keyboard::layout_presets::LayoutSizePresets::*;
 use tauri::{api::path::config_dir, Manager};
 
 fn main() {
-
 	// here `"quit".to_string()` defines the menu item id, and the second parameter is the menu item label.
 	let quit = CustomMenuItem::new("quit".to_string(), "Quit");
 	let close = CustomMenuItem::new("close".to_string(), "Close");
@@ -17,8 +16,10 @@ fn main() {
 	let _menu = Menu::new()
 	.add_submenu(submenu)
 	.add_native_item(MenuItem::Copy);
-	
 
+	// std::panic::set_hook(Box::new(|info| {
+    //     error!("Panicked: {:?}", info);
+    // }));
   tauri::Builder::default()
 	// .menu(menu)
     .setup(|app| {
@@ -67,6 +68,7 @@ fn get_layout_presets() -> Vec<(usize, usize)> {
 	// for (i, size) in sizes.iter().enumerate() {
 	// 	out.insert(i, *size);
 	// }
+
 	sizes
 }
 
@@ -197,11 +199,6 @@ fn does_file_exist(filename: String) -> bool {
 
 #[tauri::command]
 async fn run_optimizer(filename: String) -> Result<String, AlcError> {
-	// match optimize_from_toml(filename) {
-	// 	Ok(v) => v,
-	// 	Err(e) => panic!("{}", e)
-	// }
-	// Ok(())
 	optimize_from_toml(filename)
 }
 
