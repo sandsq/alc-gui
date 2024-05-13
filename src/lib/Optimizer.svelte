@@ -473,6 +473,49 @@
 		}
 	}
 
+	async function add_dataset_path() {
+		if (dataset_options) {
+			/**@type {string | string[] | null}*/
+			let opened_dir;
+			opened_dir = await open({
+				multiple: true,
+				directory: true
+			});
+			if (opened_dir) {
+				console.log(`adding ${opened_dir}`)
+				if (Array.isArray(opened_dir)) {
+					for (let dir of opened_dir) {
+						dataset_options.dataset_paths.push(dir)
+						dataset_options.dataset_paths = dataset_options.dataset_paths
+
+						dataset_options.dataset_weights.push(1.0)
+						dataset_options.dataset_weights = dataset_options.dataset_weights	
+					}
+				} else {
+					dataset_options.dataset_paths.push(opened_dir)
+					dataset_options.dataset_paths = dataset_options.dataset_paths
+
+					dataset_options.dataset_weights.push(1.0)
+					dataset_options.dataset_weights = dataset_options.dataset_weights
+				}
+				saved = false
+			}
+		}
+	}
+	
+	/**@param {number} i*/
+	function remove_dataset_path(i) {
+		if (dataset_options) {
+			dataset_options.dataset_paths.splice(i, 1)
+			dataset_options.dataset_paths = dataset_options.dataset_paths
+
+			dataset_options.dataset_weights.splice(i, 1)
+			dataset_options.dataset_weights = dataset_options.dataset_weights
+
+			saved = false
+		}
+	}
+
 	/**@type {string[]}*/
 	let presets = ["4x10", "ferris_sweep", "4x12", "5x15"]
 	/**@param {string} preset_name*/
@@ -488,7 +531,7 @@
 		})
 	}
 
-	let optimizing_wait_messages = ["Optimizing.", "Optimizing..", "Optimizing..."]
+	let optimizing_wait_messages = ["Optimizing.  ", "Optimizing.. ", "Optimizing..."]
 	/**@type {number}*/
 	let roller;
 	let index = 0;
@@ -851,8 +894,9 @@
 										{#if key == 'dataset_paths'}
 											<div style="width: 400px; word-wrap: break-word;">
 												{#each dataset_options['dataset_paths'] as dir, d_ind}
-													{dir}<button>Browse</button>
+													{dir}<button class="plus_button" on:click={() => remove_dataset_path(d_ind)}>x</button>
 												{/each}
+												<button class="plus_button" on:click={add_dataset_path}>+</button>
 											</div>
 										{:else if key == "dataset_weights"}
 											{#each dataset_options['dataset_weights'] as weight, d_ind}
@@ -1041,6 +1085,9 @@
 	.options input {
 		margin-top: 6px;
 		margin-left: 10px;
+	}
+	.options input[type="range"] {
+		accent-color: $blue_light;
 	}
 	// these hide show are the contents
 	.tabhide {

@@ -38,7 +38,7 @@
 		let rows = split_layer_to_rows(phalanx_string);
 		if (phalanx_layer.length != rows.length) {
 			alert(
-				`the number of rows in the phalanx layer (${phalanx_layer[0].length}) does not match the number of rows found from the config (${rows.length}: ${rows}); this is probably a developer error due to parsing the config incorrectly`
+				`the number of rows in the phalanx layer (${phalanx_layer.length}) does not match the number of rows found from the config (${rows.length}: ${rows}); this is probably a developer error due to parsing the config incorrectly`
 			);
 			return;
 		}
