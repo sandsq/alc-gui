@@ -6,12 +6,14 @@
 	import Layout from './Layout.svelte';
 	import EffortLayer from './EffortLayer.svelte';
 	import PhalanxLayer from './PhalanxLayer.svelte';
+	import Help from "./Help.svelte"
 	import { appWindow } from '@tauri-apps/api/window';
 	import { layer_switch_regex } from './utils';
 	import SvelteMarkdown from 'svelte-markdown';
 	import { Tooltip, tooltip } from "@svelte-plugins/tooltips";
 	import { fade, slide } from 'svelte/transition'
 	import { copy } from "svelte-copy";
+	
 
 	let visible = false
 
@@ -29,7 +31,7 @@
 	 * @property {typeof Layout} tab1
 	 * @property {typeof EffortLayer} tab2
 	 * @property {typeof PhalanxLayer} tab3
-	 * @property {typeof SvelteMarkdown} tab4
+	 * @property {typeof Help} tab4
 	 * @property {string} tab5
 	 */
 	/** @type {TabComponentMap} */
@@ -37,7 +39,7 @@
 		tab1: Layout,
 		tab2: EffortLayer,
 		tab3: PhalanxLayer,
-		tab4: SvelteMarkdown,
+		tab4: Help,
 		tab5: "",
 	};
 
@@ -812,8 +814,8 @@
 						<div class="help_doc">
 						<svelte:component
 							this={tab_components["tab4"]}
-							source={help_doc}
 						/>
+						<!-- source={help_doc} -->
 						</div>
 					{/if}
 				</div>
