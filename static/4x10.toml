@@ -8,11 +8,11 @@ ___Layer 0___
 0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-3|   NO_10   NO_10   NO_10  LS1_00  SPC_00 BSPC_00  LS2_00   NO_10   NO_10   NO_10 
+3|  SFT_11   NO_10   NO_10  LS1_00  SPC_00 BSPC_00  LS2_00   NO_10   NO_10  SFT_11 
 ___Layer 1___
          0       1       2       3       4       5       6       7       8       9 
 0|    1_00    2_00    3_00    4_00    5_00    6_00    7_00    8_00    9_00 ZERO_00 
-1|   NO_10   NO_10   NO_10  SFT_11   NO_10   NO_10  SFT_11   NO_10   NO_10   NO_10 
+1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 3|   NO_10   NO_10   NO_10  LS1_00   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 ___Layer 2___
@@ -94,13 +94,13 @@ extra_length_penalty_factor = 1.5
 # replace_weight: See swap_weight.
 
 # [layout_optimizer_config.keycode_options]
-# include_alphas: Whether to include alphabet keycodes. Recommended to be set to true, as otherwise the user must manually place every alpha.
+# include_alphas: Convenience toggle. Recommended to be set to true, as otherwise the user must manually place every alpha.
 # include_numbers: Whether to include number keycodes. Recommended to set this to false with manual number placement -- optimized layouts cannot currently guarantee numbers to be arranged in order.
-# include_number_symbols: Whether to include shifted numbers (!@#$ etc.). If false, these symbols must be accessed through shifted numbers. Recommended to set to false. For specific symbols, such as ones common to programming languages, include them in `explicit_inclusions`.
-# include_brackets: Whether to include ()[]{}<> Recommended to set to false with manual bracket placement, as optimized layouts cannot guarantee corresponding brackets will appear next to each other.
-# include_misc_symbols: Whether to include -=\;'`/[] Set to true or manually place in the layout, as these are needed for typing.
-# include_misc_symbols_shifted: Whether to include shifted versions of misc. symbols, i.e., _+|:"~?{} Recommended to set to false and access through shift.
-# explicit_inclusions: Keycodes to explicitly include. If no combination of options covers exactly what you want, add them here.
+# include_number_symbols: Whether shifted numbers (!@#$ etc.) should be considered their own keycodes. If false, these symbols must be accessed through shift+numbers. Recommended to set to false, as it is uncommon for general typing to need immediate access to all such symbols. Instead, include specific symbols, such as ones common to a programming language, via `explicit_inclusions`.
+# include_brackets: Whether the various brackets ()[]{}<> should be considered their own keycodes. (Note that "[]" will always be considered their own keycodes since they are base, non-shifted keys.) If users prefer symmetrically placed brackets, recommended to set to true with manual initial symmetric placements. Otherwise, set to false.
+# include_misc_symbols: Convenience toggle. -=\;'`/[] Set to true or manually place in the layout, as these are required for typing.
+# include_misc_symbols_shifted: Whether shifted versions of misc. symbols, i.e., _+|:"~?{} should be considered their own keycodes. Recommended to set to false, as it is uncommon for general typing to need immediate access to all such symbols. Instead, include specific symbols via `explicit_inclusions`.
+# explicit_inclusions: Keycodes to explicitly include, for if no combination of options covers exactly what the user wants. If not manually added to the layout, shift (SFT) should be included here.
 
 # [layout_optimizer_config.dataset_options]
 # dataset_paths: Path to directories containing textual data. Currently only looks in the immediate directory and not recursively. Presets are planned.

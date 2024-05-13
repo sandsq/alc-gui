@@ -41,6 +41,8 @@ fn main() {
 		write_toml,
 		create_blank_layers,
 		get_config_dir,
+		get_cache_dir,
+		read_current_step_cache,
 		get_default_genetic_options,
 		get_default_keycode_options,
 		get_default_dataset_options,
@@ -170,6 +172,30 @@ fn get_config_dir() -> Result<String, AlcError> {
 }
 
 #[tauri::command]
+fn get_cache_dir() -> Result<String, AlcError> {
+	let mut cache_dir = dirs::cache_dir().unwrap().into_os_string();
+	cache_dir.push("/alc/");
+	match fs::create_dir_all(cache_dir.clone()) {
+		Ok(v) => v,
+		Err(_e) => return Err(AlcError::ExpectedDirectoryError(PathBuf::from(cache_dir)))
+	}
+	Ok(cache_dir.into_string().unwrap())
+}
+
+#[tauri::command]
+fn read_current_step_cache() -> Result<String, AlcError> {
+	let cache_dir = get_cache_dir()?;
+	let current_step_file = format!("{}current_step.txt", cache_dir);
+	let contents = match fs::read_to_string(&current_step_file) {
+		Ok(c) => c,
+		Err(_) => {
+			"".to_string()
+		}
+	};
+	Ok(contents)
+}
+
+#[tauri::command]
 fn get_default_genetic_options() -> GeneticOptions {
 	GeneticOptions::default()
 }
@@ -205,7 +231,12 @@ fn does_file_exist(filename: String) -> bool {
 
 #[tauri::command]
 async fn run_optimizer(filename: String) -> Result<String, AlcError> {
-	optimize_from_toml(filename)
+	let cache_dir = get_cache_dir()?;
+	let current_step_file = format!("{}current_step.txt", cache_dir);
+	fs::write(&current_step_file, "").unwrap();
+	let final_path = optimize_from_toml(filename)?;
+	fs::write(&current_step_file, "").unwrap();
+	Ok(final_path)
 }
 
 #[tauri::command]

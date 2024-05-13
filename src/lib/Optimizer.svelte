@@ -494,13 +494,22 @@
 	let index = 0;
 	let help_doc = "";
 	
+	/**@type {any}*/
+	let current_step;
+
 	let config_dir = '';
 	/**@type {number}*/
 	let save_interval_timer;
 	onMount(() => {
 		roller = setInterval(() => {
-			if (index === optimizing_wait_messages.length - 1) index = 0;
-			else index++;
+			if (index === optimizing_wait_messages.length - 1) {
+				index = 0;
+			} else {
+				index++;
+			}
+			invoke("read_current_step_cache").then((res) => {
+				current_step = res
+			})
 		}, 1000);
 		invoke('get_config_dir').then((res) => {
 			config_dir = res;
@@ -574,6 +583,8 @@
 		}
 	}
 
+	
+
 	/**@type {Promise<void>}*/
 	let optimizer_run;
 	async function run_optimizer() {
@@ -589,6 +600,8 @@
 			alert(`something went wrong: ${e}`)
 			console.error(e)
 		})
+
+		
 	}
 	
 </script>
@@ -635,7 +648,8 @@
      on:introstart="{() => visible = false}"
      on:outroend="{() => visible = true}">
   ...waiting </p> -->
-  <span transition:slide>&nbsp; {optimizing_wait_messages[index]}</span>
+  <!-- transition:slide -->
+  <span>&nbsp; {optimizing_wait_messages[index]} {current_step}</span>
 {:then value}
 	<span>&nbsp; Not currently optimizing</span>
 {/await}

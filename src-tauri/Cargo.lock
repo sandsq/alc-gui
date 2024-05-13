@@ -33,6 +33,7 @@ dependencies = [
  "array2d",
  "clap",
  "delegate",
+ "dirs",
  "divan",
  "erased-serde 0.4.4",
  "rand 0.8.5",
