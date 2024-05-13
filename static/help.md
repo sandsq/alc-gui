@@ -30,5 +30,8 @@ The `Hand assignment` tab lets the user customize hand and finger assignments pe
 ## The options
 Hover over the `?` mark accompanying each option to read about it.
 
+## Copyable version
+This is a small convenience for using the layout with QMK. For now all it does is prepend `KC_` to the relevant keycodes and add some commas.
+
 ## Misc info
 Using the [gruvbox color scheme](https://github.com/morhetz/gruvbox).

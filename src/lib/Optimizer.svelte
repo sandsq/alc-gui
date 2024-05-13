@@ -11,7 +11,8 @@
 	import SvelteMarkdown from 'svelte-markdown';
 	import { Tooltip, tooltip } from "@svelte-plugins/tooltips";
 	import { fade, slide } from 'svelte/transition'
-	
+	import { copy } from "svelte-copy";
+
 	let visible = false
 
 	const keycode_options_info = "Options to specify the set of keycodes to which text should be translated; included in this specification are which keycodes should be treated as shifted versions of their base keycodes (e.g., should \"plus\" get its own keycode or should it be treated as \"shift + equals\"). The shift key itself and all non-shifted keycodes need to appear in the layout or some ngrams won't be typeable."
@@ -29,7 +30,7 @@
 	 * @property {typeof EffortLayer} tab2
 	 * @property {typeof PhalanxLayer} tab3
 	 * @property {typeof SvelteMarkdown} tab4
-	 
+	 * @property {string} tab5
 	 */
 	/** @type {TabComponentMap} */
 	const tab_components = {
@@ -37,6 +38,7 @@
 		tab2: EffortLayer,
 		tab3: PhalanxLayer,
 		tab4: SvelteMarkdown,
+		tab5: "",
 	};
 
 	/** @type {string | string[] | null}*/
@@ -642,8 +644,50 @@
 		}).catch((e) => {
 			alert(`something went wrong: ${e}`)
 			console.error(e)
-		})
+		})	
+	}
 
+	let layer_spec = "OSL"
+	let copyable_layout = "";
+	$: {
+		if (layout) {
+			copyable_layout = ""
+			for (let n = 0; n < layout.length; n++) {
+				for (let i = 0; i < layout[n].length; i++) {
+					for (let j = 0; j < layout[n][i].length; j++) {
+						let key = layout[n][i][j]
+						let keycode = key.keycode
+						if (keycode == "NO" && key.locked) {
+							copyable_layout += "XXXXXXX".padStart(8)
+						} else if (keycode == "NO") {
+							copyable_layout += "_______".padStart(8)
+						} else if (keycode.includes("LS")) {
+							const regex = /^LS(\d+)$/;
+							const match = keycode.match(regex);
+							let corresponding_layer = -1;
+							if (match) {
+								corresponding_layer = parseInt(match[1], 10);
+								if (n == corresponding_layer) {
+									copyable_layout += "_______".padStart(8)
+								} else {
+									copyable_layout += `${layer_spec}(${corresponding_layer})`.padStart(8)
+								}
+							}
+						} else {
+							copyable_layout += `KC_${keycode}`.padStart(8)
+						}
+						if (i == layout[n].length - 1 && j == layout[n][i].length - 1) {
+
+						} else {
+							copyable_layout += ", "
+						}
+						
+					}
+					copyable_layout += "\n"
+				}
+				copyable_layout += "\n"
+			}
+		}
 		
 	}
 	
@@ -714,6 +758,10 @@
 			class="{active_tab == 'tab3' ? 'active_tab' : 'inactive_tab'} tab">Hand assignment</button
 		>
 		<button
+			on:click={() => (active_tab = 'tab5')}
+			class="{active_tab == 'tab5' ? 'active_tab' : 'inactive_tab'} tab">Copyable version</button
+		>
+		<button
 			on:click={() => (active_tab = 'tab4')}
 			class="{active_tab == 'tab4' ? 'active_tab' : 'inactive_tab'} tab">Help</button
 		>
@@ -750,6 +798,14 @@
 						bind:layout_size={selected_size}
 						{is_size_from_config}
 					/>
+				</div>
+				<div class={active_tab == "tab5" ? "tabshow" : "tabhide"}>
+					<button style="margin-top: 10px;" use:copy={copyable_layout}>Copy!</button>
+					<select bind:value={layer_spec}>
+						<option value="OSL">OSL</option>
+						<option value="MO">MO</option>
+					</select>
+					<code><pre>{copyable_layout}</pre></code>
 				</div>
 				<div class={active_tab == "tab4" ? "tabshow" : "tabhide"}>
 					{#if help_doc}
@@ -1217,5 +1273,16 @@
 		--tooltip-font-size: 20px;
 		--tooltip-color: #f2e5bc;
 		--tooltip-background-color: #076678; // $foreground0;
+	}
+
+	pre {
+		// background: black;
+		padding: 20px;
+		padding-right: 28px;
+		border: 2px solid $foreground0;
+		box-shadow: inset 4px 4px $blue_dark2, inset -4px -4px $blue_dark2;
+		border-radius: 5px;
+		background: $background2;
+		color: $blue_dark2;
 	}
 </style>
