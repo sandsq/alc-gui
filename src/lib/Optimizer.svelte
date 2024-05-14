@@ -663,6 +663,8 @@
 							copyable_layout += "XXXXXXX".padStart(8)
 						} else if (keycode == "NO") {
 							copyable_layout += "_______".padStart(8)
+						} else if (keycode == "ZERO") {
+							copyable_layout += "KC_0".padStart(8)
 						} else if (keycode.includes("LS")) {
 							const regex = /^LS(\d+)$/;
 							const match = keycode.match(regex);
@@ -674,6 +676,8 @@
 								} else {
 									copyable_layout += `${layer_spec}(${corresponding_layer})`.padStart(8)
 								}
+							} else {
+								copyable_layout += `KC_${keycode}`.padStart(8)	
 							}
 						} else {
 							copyable_layout += `KC_${keycode}`.padStart(8)

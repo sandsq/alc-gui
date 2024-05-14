@@ -6,9 +6,9 @@
 <p>Please report issues or make suggestions at <a href="/" on:click={async () => shell_open("https://github.com/sandsq/alc-gui")}>https://github.com/sandsq/alc-gui</a>!</p>
 
 <h2>Overview</h2>
-<p>This app is designed to optimize a keyboard layout under various configuration options.</p>
+<p>This app is designed to optimize a keyboard layout under various configurations.</p>
 
-<p>Each position in the layout is given an "effort value", representing the relative effort required to reach that position. Each value is also paired with a hand+finger assignment, which is used to determine whether a given typing sequence results a favorable action such as hand alternation or finger rolling.</p>
+<p>Each position in the layout is given an "effort value", representing the relative effort required to reach that position. Each value is also paired with a hand+finger assignment, which is used to determine whether typing a given sequence results a favorable action such as hand alternation or finger rolling.</p>
 
 <p>To find an optimized layout, the input is copied and randomized multiple times to form a population of layouts. Each layout in this population is then scored against various text datasets. The best layouts, i.e., those layouts that require the least amount of effort to type the text data, are further duplicated and modified to form a new generation of layouts. This process continues for a set number of generations and the final best 10 layouts are saved.</p>
 
@@ -26,7 +26,7 @@
 <p>Arbitrary layout sizes are not supported for now (because I decided to try out Rust's constant generics to specify array sizes, oops). Instead, choose the next largest layout size and block unused keys using the lock toggle. This approach can also be used to create irregular layout shapes, such as ergo ones. Staggered layouts can still be optimized by mapping each key to a grid position -- there just currently isn't a visual indicator for stagger.</p>
 
 <h2>The effort layer</h2>
-<p>The `Effort layer` tab lets the user customize the effort layer. The values represent the relative effort required to reach a certain position -- higher value means more effort needed. As a rule of thumb, give the most accessible locations a value of 1 and scale the remaining positions accordingly. Some experimentation may be required to find numbers that suit the user.</p>
+<p>The `Effort layer` tab lets the user customize the effort layer. Values represent the relative effort required to reach a certain position -- higher value means more effort needed. As a rule of thumb, give the most accessible locations a value of 1 and scale the remaining positions accordingly. Some experimentation may be required to find numbers that suit the user.</p>
 
 <h2>The hand assignments</h2>
 <p>The `Hand assignment` tab lets the user customize hand and finger assignments per key. These are use to determine whether sequences result in hand alternation or finger rolls, two favorable typing actions that can decrease the effort required to type said sequence. `Joint` refers to that part of the palm that meets the base of the pinkie, as some typists use that part of their hand to hit the keys in the bottom left / bottom right corners. Default hand assignments follow the homerow style of typing, but the user can change that to suit their needs.</p>
