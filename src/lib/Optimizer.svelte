@@ -598,6 +598,8 @@
 				help_doc = t
 			})
 		})
+
+		
 		// appWindow.once("ready", async () => {
 		// 	await create_blank_layers("app window ready")
 		// selected_size = layout_sizes[0]
@@ -630,6 +632,20 @@
 		}
 	}
 
+
+	/**@type {Promise<number | void>}*/
+	let current_score_promise;
+	/**@type {number | string}*/
+	let current_score;
+	async function compute_score() {
+		await write_toml(false, true)
+		current_score_promise = invoke("compute_score", {configFile: `${config_dir}/autosave.toml`}).then((res) => {
+			console.log(res)
+			current_score = res
+		}).catch((e) => {
+			current_score = e
+		})
+	}
 	
 
 	/**@type {Promise<void>}*/
@@ -641,12 +657,13 @@
 			if (show_final_result) {
 				// selected_toml_file = res
 				open_toml(false, res)
+				await compute_score()
 				saved = false
 			}
 		}).catch((e) => {
 			alert(`something went wrong: ${e}`)
 			console.error(e)
-		})	
+		})
 	}
 
 	let layer_spec = "OSL"
@@ -828,6 +845,11 @@
 			{#if option_descriptions && active_tab != "tab4"}
 				<div class="options {options_display}">
 					<button on:click={() => write_toml(true, false)}>Save layout and options as</button>
+					<br />
+					<br />
+					<button on:click={compute_score}>Compute score:</button> {current_score}
+				
+					
 					<table>
 						<tr><th style="font-size: 32px;">Options</th></tr>
 						<tr>

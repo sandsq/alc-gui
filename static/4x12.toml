@@ -1,46 +1,40 @@
 # See ending comments for field information.
 [layout_info]
 num_rows = 4
-num_cols = 10
+num_cols = 12
 layout = """
 ___Layer 0___
-         0       1       2       3       4       5       6       7       8       9 
-0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-1|   NO_10   NO_10  LS3_10   NO_10   NO_10   NO_10  SPC_10   NO_10   NO_10   NO_10 
-2|  SFT_11   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10  SFT_11 
-3|   NO_00   NO_00   NO_00  LS1_00  SPC_00 BSPC_00  LS2_00   NO_00   NO_00   NO_00 
+         0       1       2       3       4       5       6       7       8       9      10      11 
+0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+3|   NO_10   NO_10   NO_10   NO_10  LS1_00  SPC_00 BSPC_00  LS2_00   NO_10   NO_10   NO_10   NO_10 
 ___Layer 1___
-         0       1       2       3       4       5       6       7       8       9 
-0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-1|   NO_10 LCBR_00 LBRC_00 LPRN_00   NO_10   NO_10 RPRN_00 RBRC_00 RCBR_00   NO_10 
-2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-3|   NO_00   NO_00   NO_00  LS1_00   NO_10   NO_10   NO_10   NO_00   NO_00   NO_00 
+         0       1       2       3       4       5       6       7       8       9      10      11 
+0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+3|   NO_10   NO_10   NO_10   NO_10  LS1_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 ___Layer 2___
-         0       1       2       3       4       5       6       7       8       9 
-0|    1_00    2_00    3_00    4_00    5_00   NO_10   NO_10   NO_10   NO_10   NO_10 
-1|    6_00    7_00    8_00    9_00 ZERO_00   NO_10 LEFT_00 DOWN_00   UP_00 RGHT_00 
-2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 HOME_00 PGDN_00 PGUP_00  END_00 
-3|   NO_00   NO_00   NO_00   NO_10   NO_10   NO_10  LS2_00   NO_00   NO_00   NO_00 
-___Layer 3___
-         0       1       2       3       4       5       6       7       8       9 
-0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-1|   NO_10   NO_10  LS3_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-3|   NO_00   NO_00   NO_00   NO_10   NO_10   NO_10   NO_10   NO_00   NO_00   NO_00 
+         0       1       2       3       4       5       6       7       8       9      10      11 
+0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+3|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10  LS2_10   NO_10   NO_10   NO_10   NO_10 
 """
 effort_layer = """
-      0    1    2    3    4    5    6    7    8    9 
-0|   7   2   2   2   7   7   2   2   2   7 
-1|   3   1   1   1   3   3   1   1   1   3 
-2|   5   3   3   3   8   8   3   3   3   5 
-3|  10   7   4   2   1   1   2   4   7  10 
+      0    1    2    3    4    5    6    7    8    9   10   11 
+0|  12   7   2   2   2   7   7   2   2   2   7  12 
+1|   6   3   1   1   1   3   3   1   1   1   3   6 
+2|  13   5   3   3   3   8   8   3   3   3   5  13 
+3|  14  10   7   4   2   1   1   2   4   7  10  14 
 """
 phalanx_layer = """
-      0    1    2    3    4    5    6    7    8    9 
-0| l:p l:r l:m l:i l:i r:i r:i r:m r:r r:p 
-1| l:p l:r l:m l:i l:i r:i r:i r:m r:r r:p 
-2| l:p l:r l:m l:i l:i r:i r:i r:m r:r r:p 
-3| l:p l:r l:t l:t l:t r:t r:t r:t r:r r:p 
+      0    1    2    3    4    5    6    7    8    9   10   11 
+0| l:p l:p l:r l:m l:i l:i r:i r:i r:m r:r r:p r:p 
+1| l:p l:p l:r l:m l:i l:i r:i r:i r:m r:r r:p r:p 
+2| l:p l:p l:r l:m l:i l:i r:i r:i r:m r:r r:p r:p 
+3| l:j l:p l:r l:t l:t l:t r:t r:t r:t r:r r:p r:j 
 """
 
 [layout_optimizer_config]
@@ -48,8 +42,8 @@ valid_keycodes = []
 num_threads = 16
 
 [layout_optimizer_config.genetic_options]
-population_size = 10000
-generation_count = 100
+population_size = 1000
+generation_count = 10
 fitness_cutoff = 0.1
 swap_weight = 2.0
 replace_weight = 1.0
@@ -57,15 +51,15 @@ replace_weight = 1.0
 [layout_optimizer_config.keycode_options]
 include_alphas = true
 include_numbers = false
-include_number_symbols = false
+include_number_symbols = true
 include_brackets = false
 include_misc_symbols = true
 include_misc_symbols_shifted = false
-explicit_inclusions = []
+explicit_inclusions = ["_SPC", "_SFT", "_ENT"]
 
 [layout_optimizer_config.dataset_options]
-dataset_paths = ["~/coding/rustprog/alc/alc-rs/data/rust_book/", "/home/sand/coding/rustprog/alc/alc-rs/data/gutenberg"]
-dataset_weights = [1.0, 1.0]
+dataset_paths = ["~/coding/rustprog/alc/alc-rs/data/rust_book_test/", "~/coding/rustprog/alc/alc-rs/data/rust_book/"]
+dataset_weights = [0.1, 1.0]
 max_ngram_size = 4
 top_n_ngrams_to_take = 100
 
@@ -76,7 +70,7 @@ hand_alternation_reduction_factor = 0.8
 finger_roll_reduction_factor = 0.8
 finger_roll_same_row_reduction_factor = 0.9
 same_finger_penalty_factor = 5.0
-extra_length_penalty_factor = 1.5
+extra_length_penalty_factor = 1.2
 
 # [Autogenerated]
 # Option info (note: some descriptions may not be totally accurate due to complexity, but the general idea should be present.)

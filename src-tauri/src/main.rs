@@ -1,10 +1,10 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{collections::HashMap, fs, path::{Path, PathBuf}};
+use std::{collections::HashMap, fs, os::unix::process, path::{Path, PathBuf}};
 use tauri::{CustomMenuItem, Menu, MenuItem, Submenu};
 use strum::IntoEnumIterator;
-use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout_presets::{get_all_layout_size_presets, get_size_variant}}, optimizer::{config::{option_descriptions, DatasetOptions, GeneticOptions, LayoutInfoTomlAdapter, LayoutOptimizerConfig, LayoutOptimizerTomlAdapter, ScoreOptions}, optimize_from_toml}, text_processor::keycode::{generate_default_keycode_set, Keycode, KeycodeOptions}};
+use alc::{alc_error::AlcError, keyboard::{key::PhalanxKey, layer::Layer, layout_presets::{get_all_layout_size_presets, get_size_variant}}, objective::scoring::AdvancedScoreFunction, optimizer::{config::{option_descriptions, DatasetOptions, GeneticOptions, LayoutInfoTomlAdapter, LayoutOptimizerConfig, LayoutOptimizerTomlAdapter, ScoreOptions}, optimize_from_toml, score_from_toml, LayoutOptimizer}, text_processor::keycode::{generate_default_keycode_set, Keycode, KeycodeOptions}};
 use alc::keyboard::layout_presets::LayoutSizePresets::*;
 use tauri::{api::path::config_dir, Manager};
 
@@ -50,7 +50,8 @@ fn main() {
 		get_default_score_options,
 		does_file_exist,
 		run_optimizer,
-		get_option_descriptions,])
+		get_option_descriptions,
+		compute_score,])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
@@ -82,8 +83,9 @@ fn get_all_keycodes() -> Vec<String> {
 		.collect()
 }
 
+// _app_handle: tauri::AppHandle, 
 #[tauri::command]
-fn process_config(_app_handle: tauri::AppHandle, config_file: String) -> Result<LayoutOptimizerTomlAdapter, AlcError> {
+fn process_config(config_file: String) -> Result<LayoutOptimizerTomlAdapter, AlcError> {
 // Result<LayoutOptimizerTomlAdapter, AlcError> {
 	println!("received {} as the config file to process", config_file);
 	let lo: LayoutOptimizerTomlAdapter;
@@ -125,16 +127,25 @@ fn create_blank_layers(r: usize, c: usize, loc: String) -> Result<(String, Strin
 	let (effort_layer, phalanx_layer) = match size_variant {
 		TwoByFour => {
 			(format!("{}", Layer::<2, 4, f64>::default()), format!("{}", Layer::<2, 4, PhalanxKey>::default()))
-		}, 
+		},
+		FiveBySix => {
+			(format!("{}", Layer::<5, 6, f64>::default()), format!("{}", Layer::<5, 6, PhalanxKey>::default()))
+		},
 		FourByTen => {
 			(format!("{}", Layer::<4, 10, f64>::default()), format!("{}", Layer::<4, 10, PhalanxKey>::default()))
 		},
 		FourByTwelve => {
 			(format!("{}", Layer::<4, 12, f64>::default()), format!("{}", Layer::<4, 12, PhalanxKey>::default()))
-		}
+		},
+		FiveByTwelve => {
+			(format!("{}", Layer::<5, 12, f64>::default()), format!("{}", Layer::<5, 12, PhalanxKey>::default()))
+		},
 		FiveByFifteen => {
 			(format!("{}", Layer::<5, 15, f64>::default()), format!("{}", Layer::<5, 15, PhalanxKey>::default()))
-		}
+		},
+		SixByTwenty => {
+			(format!("{}", Layer::<6, 20, f64>::default()), format!("{}", Layer::<6, 20, PhalanxKey>::default()))
+		},
 	};
 	println!("received request to get blank effort and phalanx layers from {}:\n{} {}", loc, effort_layer, phalanx_layer);
 	Ok((effort_layer, phalanx_layer))
@@ -242,4 +253,9 @@ async fn run_optimizer(filename: String) -> Result<String, AlcError> {
 #[tauri::command]
 fn get_option_descriptions() -> HashMap<String, String> {
 	option_descriptions()
+}
+
+#[tauri::command]
+async fn compute_score(config_file: String) -> Result<f64, AlcError> {
+	score_from_toml(config_file)
 }
