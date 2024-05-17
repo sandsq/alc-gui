@@ -432,7 +432,7 @@
 		// box-shadow: 4px 4px $blue_dark1;
 	}
 	.has_keycode select {
-		background-color: $background;
+		// background-color: $background;
 		border: 4px solid $blue_light;
 		margin-left: -2px;
 		margin-top: -1px;

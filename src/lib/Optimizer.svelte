@@ -98,7 +98,7 @@
 			opened_file = content_to_open;
 		}
 		if (opened_file !== null) {
-			invoke('process_config', { configFile: opened_file })
+			await invoke('process_config', { configFile: opened_file })
 				.then((res) => {
 					is_size_from_config = true;
 					selected_toml_file = opened_file;
@@ -122,9 +122,11 @@
 					alert(e);
 					console.error(e);
 				});
+			compute_score()
 			// console.log(selected_file)
 			// emit("selected_toml_changed", toml_file)
 		}
+
 	}
 
 	/** @type {[number, number][]}*/
@@ -465,6 +467,7 @@
 			keycode_options.explicit_inclusions.push('_NO');
 			keycode_options.explicit_inclusions = keycode_options.explicit_inclusions;
 			recompute_valid_keycodes();
+			compute_score();
 		}
 	}
 	/**@param {number} ind */
@@ -474,6 +477,7 @@
 			keycode_options.explicit_inclusions.splice(ind, 1);
 			keycode_options.explicit_inclusions = keycode_options.explicit_inclusions;
 			recompute_valid_keycodes();
+			compute_score()
 		}
 	}
 
@@ -503,6 +507,7 @@
 					dataset_options.dataset_weights = dataset_options.dataset_weights
 				}
 				saved = false
+				compute_score()
 			}
 		}
 	}
@@ -517,11 +522,12 @@
 			dataset_options.dataset_weights = dataset_options.dataset_weights
 
 			saved = false
+			compute_score()
 		}
 	}
 
 	/**@type {string[]}*/
-	let presets = ["4x10", "ferris_sweep", "4x12", "5x15"]
+	let presets = ["5x6_left", "5x6_right", "4x10", "ferris_sweep", "4x12", "5x12", "5x15", "6x20"]
 	/**@param {string} preset_name*/
 	async function fetch_preset_by_name(preset_name) {
 		fetch(`${preset_name}.toml`).then((res) => {
@@ -598,7 +604,6 @@
 				help_doc = t
 			})
 		})
-
 		
 		// appWindow.once("ready", async () => {
 		// 	await create_blank_layers("app window ready")
@@ -629,6 +634,7 @@
 					console.log(target.type);
 			}
 			saved = false;
+			compute_score()
 		}
 	}
 
@@ -639,7 +645,8 @@
 	let current_score;
 	async function compute_score() {
 		await write_toml(false, true)
-		current_score_promise = invoke("compute_score", {configFile: `${config_dir}/autosave.toml`}).then((res) => {
+		// current_score_promise = 
+		invoke("compute_score", {configFile: `${config_dir}/autosave.toml`}).then((res) => {
 			console.log(res)
 			current_score = res
 		}).catch((e) => {
@@ -657,8 +664,8 @@
 			if (show_final_result) {
 				// selected_toml_file = res
 				open_toml(false, res)
-				await compute_score()
 				saved = false
+				await compute_score()
 			}
 		}).catch((e) => {
 			alert(`something went wrong: ${e}`)
@@ -718,7 +725,7 @@
 
 <p>autosaved status: {saved}</p>
 
-<div>
+<div class="header_button">
 	<button on:click={() => open_toml(true, "")}>Load config</button>
 	<br />
 	or choose preset
@@ -727,7 +734,7 @@
 	{/each}
 	<br />
 	or choose size and layers:
-	<select
+	<select class="header_select"
 		on:change={() => {
 			is_size_from_config = false;
 			saved = false;
@@ -739,7 +746,7 @@
 			<option value={size}>{size[0]} x {size[1]}</option>
 		{/each}
 	</select>
-	<select 
+	<select class="header_select"
 		on:change={() => {saved = false;}}
 		bind:value={selected_num_layers}>
 		{#each { length: max_layers } as _, i}
@@ -749,10 +756,9 @@
 	<!-- <button on:click={() => open_toml(false, ferris_sweep_preset)}>Load test</button> -->
 </div>
 
-
 <br />
 
-<button on:click={() => {run_optimizer()}}>Optimize!</button>
+<span class="header_button"><button on:click={() => {run_optimizer()}}>Optimize!</button></span>
 {#await optimizer_run}
   <!-- <p transition:fade
      on:introstart="{() => visible = false}"
@@ -843,11 +849,11 @@
 			</div>
 
 			{#if option_descriptions && active_tab != "tab4"}
-				<div class="options {options_display}">
+				<div class="options {options_display} header_button">
 					<button on:click={() => write_toml(true, false)}>Save layout and options as</button>
 					<br />
 					<br />
-					<button on:click={compute_score}>Compute score:</button> {current_score}
+					<button on:click={compute_score}>Compute score:</button> {typeof current_score == "number" ? current_score.toFixed(4) : current_score}
 				
 					
 					<table>
@@ -1116,6 +1122,26 @@
 	:global(*) {
 		color: $text;
 	}
+	.header_button button {
+		color: $red_dark;
+		background-color: $background0_h;
+		border: 2px solid $green_dark;
+		border-radius: 5px;
+		margin-bottom: 8px;
+	}
+	.header_button button:hover {
+		cursor: pointer;
+		background-color: $orange_light0;
+		color: $blue_dark2;
+	}
+	.header_button button:active {
+		background-color: $orange_light;
+		color: $blue_dark2;
+	}
+	// .header_button select {
+	// 	color: $red_dark;
+	// 	background: $background0_h;
+	// }
 	.debug {
 		margin-top: 40px;
 	}
