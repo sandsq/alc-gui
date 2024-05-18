@@ -507,7 +507,7 @@
 					dataset_options.dataset_weights = dataset_options.dataset_weights
 				}
 				saved = false
-				compute_score()
+				// compute_score()
 			}
 		}
 	}
@@ -522,7 +522,7 @@
 			dataset_options.dataset_weights = dataset_options.dataset_weights
 
 			saved = false
-			compute_score()
+			// compute_score()
 		}
 	}
 
@@ -853,7 +853,7 @@
 					<button on:click={() => write_toml(true, false)}>Save layout and options as</button>
 					<br />
 					<br />
-					<button on:click={compute_score}>Compute score:</button> {typeof current_score == "number" ? current_score.toFixed(4) : current_score}
+					<div style="width: 600px;"><button on:click={compute_score}>Compute score:</button> {typeof current_score == "number" ? current_score.toFixed(4) : current_score}</div>
 				
 					
 					<table>

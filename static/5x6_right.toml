@@ -5,46 +5,46 @@ num_cols = 6
 layout = """
 ___Layer 0___
          0       1       2       3       4       5 
-0|   NO_10   NO_10  SFT_10   NO_10   NO_10   NO_10 
+0|   NO_10   NO_10   NO_10  SFT_10   NO_10   NO_10 
 1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-2|   NO_10   NO_10  LS2_10   NO_10   NO_10   NO_10 
+2|   NO_10   NO_10   NO_10  LS2_10   NO_10   NO_10 
 3|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-4|   NO_10   NO_10   NO_10  LS1_10 BSPC_00  SPC_00 
+4|  SPC_00 BSPC_00  LS1_00   NO_10   NO_10   NO_10 
 ___Layer 1___
          0       1       2       3       4       5 
-0|   NO_10    1_00    2_00    3_00    4_00    5_00 
-1|   NO_10    6_00    7_00    8_00    9_00 ZERO_00 
-2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-3|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-4|   NO_10   NO_10   NO_10  LS1_10   NO_10   NO_10 
+0|   NO_10    1_00    2_00    3_00   NO_10   NO_10 
+1|   NO_10    4_00    5_00    6_00   NO_10   NO_10 
+2|   NO_10    7_00    8_00    9_00   NO_10   NO_10 
+3|   NO_10   NO_10 ZERO_00   NO_10   NO_10   NO_10 
+4|   NO_10   NO_10  LS1_10   NO_10   NO_10   NO_10 
 ___Layer 2___
          0       1       2       3       4       5 
 0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-2|   NO_10   NO_10  LS2_10   NO_10   NO_10   NO_10 
+2|   NO_10   NO_10   NO_10  LS2_10   NO_10   NO_10 
 3|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 4|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 """
 effort_layer = """
       0    1    2    3    4    5 
-0|  10   5   3   3   3   7 
-1|   8   4   2   2   2   5 
-2|   5   3   1   1   1   3 
-3|   7   4   2   2   2   4 
-4|  10   9   7   3   2   1 
+0|   7   3   3   3   5  10 
+1|   5   2   2   2   4   8 
+2|   3   1   1   1   3   5 
+3|   4   2   2   2   4   7 
+4|   1   2   3   7   9  10 
 """
 phalanx_layer = """
       0    1    2    3    4    5 
-0| l:p l:p l:r l:m l:i l:i 
-1| l:p l:p l:r l:m l:i l:i 
-2| l:p l:p l:r l:m l:i l:i 
-3| l:p l:p l:r l:m l:i l:i 
-4| l:p l:p l:r l:t l:t l:t 
+0| r:i r:i r:m r:r r:p r:p 
+1| r:i r:i r:m r:r r:p r:p 
+2| r:i r:i r:m r:r r:p r:p 
+3| r:i r:i r:m r:r r:p r:p 
+4| r:t r:t r:t r:r r:p r:p 
 """
 
 [layout_optimizer_config]
 valid_keycodes = []
-num_threads = 16
+num_threads = 8
 
 [layout_optimizer_config.genetic_options]
 population_size = 10000
@@ -60,17 +60,17 @@ include_number_symbols = false
 include_brackets = false
 include_misc_symbols = true
 include_misc_symbols_shifted = false
-explicit_inclusions = []
+explicit_inclusions = ["_ENT", "_TAB"]
 
 [layout_optimizer_config.dataset_options]
-dataset_paths = ["~/coding/rustprog/alc/alc-rs/data/rust_book/", "/home/sand/coding/rustprog/alc/alc-rs/data/gutenberg"]
-dataset_weights = [1.0, 10.0]
+dataset_paths = []
+dataset_weights = []
 max_ngram_size = 4
 top_n_ngrams_to_take = 100
 
 [layout_optimizer_config.score_options]
-hand_alternation_weight = 0.0
-finger_roll_weight = 4.0
+hand_alternation_weight = 1.0
+finger_roll_weight = 1.0
 hand_alternation_reduction_factor = 0.8
 finger_roll_reduction_factor = 0.8
 finger_roll_same_row_reduction_factor = 0.9

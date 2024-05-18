@@ -1,40 +1,45 @@
 # See ending comments for field information.
 [layout_info]
-num_rows = 4
-num_cols = 10
+num_rows = 5
+num_cols = 6
 layout = """
 ___Layer 0___
-         0       1       2       3       4       5       6       7       8       9 
-0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-2|  SFT_11   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10  SFT_11 
-3|   NO_00   NO_00   NO_00  LS1_00  SPC_00 BSPC_00  LS2_00   NO_00   NO_00   NO_00 
+         0       1       2       3       4       5 
+0|   NO_10   NO_10  SFT_10   NO_10   NO_10   NO_10 
+1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+2|   NO_10   NO_10  LS2_10   NO_10   NO_10   NO_10 
+3|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+4|   NO_10   NO_10   NO_10  LS1_00 BSPC_00  SPC_00 
 ___Layer 1___
-         0       1       2       3       4       5       6       7       8       9 
-0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-3|   NO_00   NO_00   NO_00  LS1_00   NO_10   NO_10   NO_10   NO_00   NO_00   NO_00 
+         0       1       2       3       4       5 
+0|   NO_10   NO_10    1_00    2_00    3_00   NO_10 
+1|   NO_10   NO_10    4_00    5_00    6_00   NO_10 
+2|   NO_10   NO_10    7_00    8_00    9_00   NO_10 
+3|   NO_10   NO_10   NO_10 ZERO_00   NO_10   NO_10 
+4|   NO_10   NO_10   NO_10  LS1_00   NO_10   NO_10 
 ___Layer 2___
-         0       1       2       3       4       5       6       7       8       9 
-0|    1_00    2_00    3_00    4_00    5_00    6_00    7_00    8_00    9_00 ZERO_00 
-1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-3|   NO_00   NO_00   NO_00   NO_10   NO_10   NO_10  LS2_00   NO_00   NO_00   NO_00 
+         0       1       2       3       4       5 
+0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+2|   NO_10   NO_10  LS2_10   NO_10   NO_10   NO_10 
+3|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+4|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 """
 effort_layer = """
-      0    1    2    3    4    5    6    7    8    9 
-0|   7   2   2   2   7   7   2   2   2   7 
-1|   3   1   1   1   3   3   1   1   1   3 
-2|   5   3   3   3   8   8   3   3   3   5 
-3|  10   7   4   2   1   1   2   4   7  10 
+      0    1    2    3    4    5 
+0|  10   5   3   3   3   7 
+1|   8   4   2   2   2   5 
+2|   5   3   1   1   1   3 
+3|   7   4   2   2   2   4 
+4|  10   9   7   3   2   1 
 """
 phalanx_layer = """
-      0    1    2    3    4    5    6    7    8    9 
-0| l:p l:r l:m l:i l:i r:i r:i r:m r:r r:p 
-1| l:p l:r l:m l:i l:i r:i r:i r:m r:r r:p 
-2| l:p l:r l:m l:i l:i r:i r:i r:m r:r r:p 
-3| l:p l:r l:t l:t l:t r:t r:t r:t r:r r:p 
+      0    1    2    3    4    5 
+0| l:p l:p l:r l:m l:i l:i 
+1| l:p l:p l:r l:m l:i l:i 
+2| l:p l:p l:r l:m l:i l:i 
+3| l:p l:p l:r l:m l:i l:i 
+4| l:p l:p l:r l:t l:t l:t 
 """
 
 [layout_optimizer_config]
