@@ -29,6 +29,7 @@ dependencies = [
 [[package]]
 name = "alc"
 version = "0.1.3"
+source = "git+https://github.com/sandsq/alc-rs.git#5db3478aec7e7a369a67ab1f2874d02eadc9fae4"
 dependencies = [
  "array2d",
  "clap",
