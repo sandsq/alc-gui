@@ -16,7 +16,7 @@ ___Layer 1___
 1|   NO_10    4_00    5_00    6_00   NO_10   NO_10 
 2|   NO_10    7_00    8_00    9_00   NO_10   NO_10 
 3|   NO_10   NO_10 ZERO_00   NO_10   NO_10   NO_10 
-4|   NO_10   NO_10  LS1_10   NO_10   NO_10   NO_10 
+4|   NO_10   NO_10  LS1_00   NO_10   NO_10   NO_10 
 ___Layer 2___
          0       1       2       3       4       5 
 0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
@@ -69,9 +69,9 @@ max_ngram_size = 4
 top_n_ngrams_to_take = 100
 
 [layout_optimizer_config.score_options]
-hand_alternation_weight = 1.0
+hand_alternation_weight = 0.0
 finger_roll_weight = 1.0
-hand_alternation_reduction_factor = 0.8
+hand_alternation_reduction_factor = 1.0
 finger_roll_reduction_factor = 0.8
 finger_roll_same_row_reduction_factor = 0.9
 same_finger_penalty_factor = 5.0

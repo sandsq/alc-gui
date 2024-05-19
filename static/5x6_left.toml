@@ -69,9 +69,9 @@ max_ngram_size = 4
 top_n_ngrams_to_take = 100
 
 [layout_optimizer_config.score_options]
-hand_alternation_weight = 1.0
+hand_alternation_weight = 0.0
 finger_roll_weight = 1.0
-hand_alternation_reduction_factor = 0.8
+hand_alternation_reduction_factor = 1.0
 finger_roll_reduction_factor = 0.8
 finger_roll_same_row_reduction_factor = 0.9
 same_finger_penalty_factor = 5.0
