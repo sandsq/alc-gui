@@ -18,7 +18,9 @@
 	let visible = false
 
 	const keycode_options_info = "Options to specify the set of keycodes to which text should be translated; included in this specification are which keycodes should be treated as shifted versions of their base keycodes (e.g., should \"plus\" get its own keycode or should it be treated as \"shift + equals\"). The shift key itself and all non-shifted keycodes need to appear in the layout or some ngrams won't be typeable."
-	const keycode_list_info = "List of keycodes constructed from the given options. Unless a given keycode is already present in the layout, it will be randomly placed into an empty slot in the layout to form the first generation. Dataset text is translated into these keycodes. This means that if the user wishes to use, for example, \"&\" (AMPR) without needing to do \"shift + 7\", AMPR should appear in this list. Or another way, if AMPR is NOT in this list, then dataset text containing \"&\" will be translated to \"shift + 7\". Thus, key placement optimization would only be performed on SFT and 7, not AMPR."
+	const keycode_list_info = "List of keycodes constructed from the given options. Unless a given keycode is already present in the layout, it will be randomly placed into an empty slot in the layout to form the first generation. Dataset text is translated into these keycodes. This means that if the user wishes to use, for example, \"&\" (AMPR) without needing to type \"shift + 7\", AMPR should appear in this list. Or another way, if AMPR is NOT in this list, then dataset text containing \"&\" will be translated to \"SFT + 7\". Thus, key placement optimization would only be performed on SFT and 7, not AMPR."
+	const convenience_info = "These options cover base, non-shifted keycodes. If toggled off, the user must manually place each alpha and misc symbol themselves. If toggled on, the optimizer will automatically place said symbols, hence, convenience."
+	const specific_info = "These options cover how text should be translated into keycodes, e.g., should \"plus\" be treated as its own keycode or should it be treated as \"shift + equals\"."
 
 	/**@type {Object.<string, string>}*/
 	let option_descriptions;
@@ -866,10 +868,11 @@
 							</td>
 						</tr>
 					</table>
+					<h2>Genetic options</h2>
 					<table>
 						{#if genetic_options}
 							{@const mutation_total = genetic_options.swap_weight + genetic_options.replace_weight}
-							<tr><th>Genetic options</th><th></th></tr>
+							<!-- <tr><th>Genetic options</th><th></th></tr> -->
 							{#each Object.entries(genetic_options) as [key, value]}
 								<tr>
 									<td>{key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></td>
@@ -922,11 +925,34 @@
 							</td></tr>
 						{/if}
 					</table>
+					<h2>Keycode options</h2>
+					<!-- <span class="tooltip_div" use:tooltip={{ content: keycode_options_info, position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></h2> -->
 					<table>
 						{#if keycode_options}
-							<tr><th>Keycode options<span class="tooltip_div" use:tooltip={{ content: keycode_options_info, position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></th></tr>
+							<tr><th>Convenience options<span class="tooltip_div" use:tooltip={{ content: convenience_info, position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></th></tr>
+							{#each ["include_alphas", "include_misc_symbols"] as key}
+								<tr>
+									<td>{key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></td>
+										<td>
+											<label class="switch">
+												<input
+													type="checkbox"
+													bind:checked={keycode_options[key]}
+													on:change={recompute_valid_keycodes}
+												/>
+												<span class="slider round"></span>
+											</label>
+										</td>
+									</tr>
+							{/each}
+							<tr><td colspan="2">
+								As there currently is no way to constrain keycodes to appear<br />in certain orders with respect to each other, the user must<br />place numbers themselves.
+							</td></tr>
+							<tr><th>Specific options<span class="tooltip_div" use:tooltip={{ content: specific_info, position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></th></tr>
 							{#each Object.entries(keycode_options) as [key, value]}
-								{#if key != "include_numbers"}
+								{#if key == "include_alphas" || key == "include_misc_symbols"}
+									<!-- -->
+								{:else if key != "include_numbers"}
 								<tr>
 									<td>{key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></td>
 									<td>
@@ -958,11 +984,6 @@
 										{/if}
 									</td>
 								</tr>
-								<tr><td colspan="2">
-									{#if key == "include_alphas"}
-										Numbers should be added and locked to the layout<br />by the user -- constraining numbers to be in order<br />is currently not possible.
-									{/if}
-								</td></tr>
 								{/if}
 							{/each}
 							<tr>
@@ -974,9 +995,10 @@
 							</tr>
 						{/if}
 					</table>
+					<h2>Dataset options</h2>
 					<table>
 						{#if dataset_options}
-							<tr><th>Dataset options</th></tr>
+							<!-- <tr><th>Dataset options</th></tr> -->
 							{#each Object.entries(dataset_options) as [key, value]}
 								<tr>
 									<td>{key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></td>
@@ -1018,9 +1040,10 @@
 							{/each}
 						{/if}
 					</table>
+					<h2>Scoring options</h2>
 					<table>
 						{#if score_options}
-							<tr><th>Scoring options</th></tr>
+							<!-- <tr><th>Scoring options</th></tr> -->
 							{#each Object.entries(score_options) as [key, value]}
 								<tr>
 									<td>{key == "finger_roll_same_row_reduction_factor" ? "same_row_reduction_factor" : key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 450 }}>&nbsp;<u >?</u>&nbsp;</span></td>
@@ -1179,6 +1202,9 @@
 		margin: 1rem;
 		margin-left: 3rem;
 	}
+	.options h2 {
+		margin-bottom: 5px;
+	}
 	.options input:not([type='range']) {
 		width: 6rem;
 	}
@@ -1190,7 +1216,7 @@
 	}
 	.options th {
 		text-align: left;
-		padding-top: 1rem;
+		// padding-top: 1rem;
 	}
 	.options input {
 		margin-top: 6px;
