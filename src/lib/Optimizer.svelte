@@ -15,9 +15,9 @@
 	import { copy } from "svelte-copy";
 	
 
-	let visible = false
+	// let visible = false
 
-	const keycode_options_info = "Options to specify the set of keycodes to which text should be translated; included in this specification are which keycodes should be treated as shifted versions of their base keycodes (e.g., should \"plus\" get its own keycode or should it be treated as \"shift + equals\"). The shift key itself and all non-shifted keycodes need to appear in the layout or some ngrams won't be typeable."
+	// const keycode_options_info = "Options to specify the set of keycodes to which text should be translated; included in this specification are which keycodes should be treated as shifted versions of their base keycodes (e.g., should \"plus\" get its own keycode or should it be treated as \"shift + equals\"). The shift key itself and all non-shifted keycodes need to appear in the layout or some ngrams won't be typeable."
 	const keycode_list_info = "List of keycodes constructed from the given options. Unless a given keycode is already present in the layout, it will be randomly placed into an empty slot in the layout to form the first generation. Dataset text is translated into these keycodes. This means that if the user wishes to use, for example, \"&\" (AMPR) without needing to type \"shift + 7\", AMPR should appear in this list. Or another way, if AMPR is NOT in this list, then dataset text containing \"&\" will be translated to \"SFT + 7\". Thus, key placement optimization would only be performed on SFT and 7, not AMPR."
 	const convenience_info = "These options cover base, non-shifted keycodes. If toggled off, the user must manually place each alpha and misc symbol themselves. If toggled on, the optimizer will automatically place said symbols, hence, convenience."
 	const specific_info = "These options cover how text should be translated into keycodes, e.g., should \"plus\" be treated as its own keycode or should it be treated as \"shift + equals\"."
@@ -856,75 +856,7 @@
 					<br />
 					<br />
 					<div style="width: 600px;"><button on:click={compute_score}>Compute score:</button> {typeof current_score == "number" ? current_score.toFixed(4) : current_score}</div>
-				
-					
-					<table>
-						<tr><th style="font-size: 32px;">Options</th></tr>
-						<tr>
-							<td>num_threads <u class="tooltip_div" use:tooltip={{ content: option_descriptions["num_threads"], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>?</u></td>
-							<td>
-								<input type="range" min="1" max="24" bind:value={num_threads} />
-								<input type="number" min="1" max="24" bind:value={num_threads} />
-							</td>
-						</tr>
-					</table>
-					<h2>Genetic options</h2>
-					<table>
-						{#if genetic_options}
-							{@const mutation_total = genetic_options.swap_weight + genetic_options.replace_weight}
-							<!-- <tr><th>Genetic options</th><th></th></tr> -->
-							{#each Object.entries(genetic_options) as [key, value]}
-								<tr>
-									<td>{key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></td>
-									<td>
-										{#if key == 'population_size'}
-											<input
-												type="range"
-												min="0"
-												max="10000"
-												step="100"
-												bind:value={genetic_options[key]}
-											/>
-											<input type="number" bind:value={genetic_options[key]} />
-										{:else if key == 'generation_count'}
-											<input
-												type="range"
-												min="0"
-												max="500"
-												step="10"
-												bind:value={genetic_options[key]}
-											/>
-											<input type="number" bind:value={genetic_options[key]} />
-										{:else if key == 'fitness_cutoff'}
-											<input
-												type="range"
-												min="0"
-												max="1"
-												step="0.05"
-												bind:value={genetic_options[key]}
-											/>
-											<input type="number" bind:value={genetic_options[key]} />
-										{:else if key == 'swap_weight' || key == 'replace_weight'}
-											<input
-												type="range"
-												min="0"
-												max="10"
-												step="1"
-												bind:value={genetic_options[key]}
-											/>
-											<input type="number" bind:value={genetic_options[key]} />
-										{:else}
-											{value}
-										{/if}
-									</td>
-								</tr>
-							{/each}
-							<tr><td colspan="2">
-								{((genetic_options.swap_weight / mutation_total) * 100).toFixed(0)}% swaps, {((genetic_options.replace_weight / mutation_total) *
-								100).toFixed(0)}% replacements
-							</td></tr>
-						{/if}
-					</table>
+					<h1>Options</h1>
 					<h2>Keycode options</h2>
 					<!-- <span class="tooltip_div" use:tooltip={{ content: keycode_options_info, position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></h2> -->
 					<table>
@@ -995,6 +927,10 @@
 							</tr>
 						{/if}
 					</table>
+					<table>
+						<!-- <tr><th style="font-size: 32px;">Options</th></tr> -->
+						
+					</table>
 					<h2>Dataset options</h2>
 					<table>
 						{#if dataset_options}
@@ -1040,6 +976,72 @@
 							{/each}
 						{/if}
 					</table>
+					<h2>Genetic options</h2>
+					<table>
+						{#if genetic_options}
+							{@const mutation_total = genetic_options.swap_weight + genetic_options.replace_weight}
+							<!-- <tr><th>Genetic options</th><th></th></tr> -->
+							{#each Object.entries(genetic_options) as [key, value]}
+								<tr>
+									<td>{key}<span class="tooltip_div" use:tooltip={{ content: option_descriptions[key], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u >?</u>&nbsp;</span></td>
+									<td>
+										{#if key == 'population_size'}
+											<input
+												type="range"
+												min="0"
+												max="10000"
+												step="100"
+												bind:value={genetic_options[key]}
+											/>
+											<input type="number" bind:value={genetic_options[key]} />
+										{:else if key == 'generation_count'}
+											<input
+												type="range"
+												min="0"
+												max="500"
+												step="10"
+												bind:value={genetic_options[key]}
+											/>
+											<input type="number" bind:value={genetic_options[key]} />
+										{:else if key == 'fitness_cutoff'}
+											<input
+												type="range"
+												min="0"
+												max="1"
+												step="0.05"
+												bind:value={genetic_options[key]}
+											/>
+											<input type="number" bind:value={genetic_options[key]} />
+										{:else if key == 'swap_weight' || key == 'replace_weight'}
+											<input
+												type="range"
+												min="0"
+												max="10"
+												step="1"
+												bind:value={genetic_options[key]}
+											/>
+											<input type="number" bind:value={genetic_options[key]} />
+										{:else}
+											{value}
+										{/if}
+									</td>
+								</tr>
+							{/each}
+							<tr><td colspan="2">
+								{((genetic_options.swap_weight / mutation_total) * 100).toFixed(0)}% swaps, {((genetic_options.replace_weight / mutation_total) *
+								100).toFixed(0)}% replacements
+							</td></tr>
+						{/if}
+						<tr>
+							<td>num_threads <u class="tooltip_div" use:tooltip={{ content: option_descriptions["num_threads"], position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>?</u></td>
+							<td>
+								<input type="range" min="1" max="24" bind:value={num_threads} />
+								<input type="number" min="1" max="24" bind:value={num_threads} />
+							</td>
+						</tr>
+					</table>
+					
+					
 					<h2>Scoring options</h2>
 					<table>
 						{#if score_options}
