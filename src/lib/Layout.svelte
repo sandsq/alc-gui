@@ -29,6 +29,8 @@
 	export let is_size_from_config;
 	/**@type boolean*/
 	export let saved;
+	/**@type boolean*/
+	export let hide_flags = false;
 
 	/**
 	 * @param {string} keycode
@@ -335,16 +337,19 @@
 					{#each { length: num_cols } as _, j}
 						<td>
 							<div
-								class="keyoffset key {layout[n][i][j].keycode == 'NO'
-									? 'no_keycode'
-									: 'has_keycode'} {layout[n][i][j].locked ? 'key_locked' : 'key_unlocked'} {layout[
-									n
-								][i][j].symmetric
-									? 'key_symmetric'
-									: 'key_asymmetric'} "
+								class="key 
+									{layout[n][i][j].keycode == 'NO' ? 'no_keycode' : 'has_keycode'} 
+									{layout[n][i][j].locked ? 'key_locked' : 'key_unlocked'} 
+									{layout[n][i][j].symmetric ? 'key_symmetric' : 'key_asymmetric'} 
+									{hide_flags ? "hide_flags" : "show_flags"}
+									"
 							>
 								{#if layout[n][i][j].keycode == 'NO'}
-									<div class="keycode_fade"></div>
+									<div class="
+										keycode_fade
+										{hide_flags ? "keycode_fade_hide_flags" : "keycode_fade_show_flags"}
+										"
+									></div>
 								{/if}
 
 								<select
@@ -356,40 +361,41 @@
 										<option value={keycode}>{keycode == 'NO' ? '' : keycode}</option>
 									{/each}
 									</select>
-
-								<span class="key_flag {layout[n][i][j].locked ? 'locked' : 'unlocked'}">
-									<button
-										on:click={() => {
-											layout[n][i][j].locked = !layout[n][i][j].locked;
-											saved = false;
-										}}
-									>
-										{#if layout[n][i][j].locked}
-											🔒
-										{:else}
-											🔓
-										{/if}
-									</button>
-								</span>
-								<span class="key_flag {layout[n][i][j].symmetric ? 'symmetric' : 'asymmetric'}">
-									<button
-										on:click={() => {
-											set_corresponding_symmetries(n, i, j);
-											saved = false;
-										}}
-										disabled={j == (num_cols - 1) / 2}
-									>
-										{#if layout[n][i][j].symmetric}
-											o|o
-										{:else if j == (num_cols - 1) / 2}
-											|
-										{:else if j > (num_cols - 1) / 2}
-											|o
-										{:else}
-											o|
-										{/if}
-									</button>
-								</span>
+								{#if !hide_flags}
+									<span class="key_flag {layout[n][i][j].locked ? 'locked' : 'unlocked'}">
+										<button
+											on:click={() => {
+												layout[n][i][j].locked = !layout[n][i][j].locked;
+												saved = false;
+											}}
+										>
+											{#if layout[n][i][j].locked}
+												🔒
+											{:else}
+												🔓
+											{/if}
+										</button>
+									</span>
+									<span class="key_flag {layout[n][i][j].symmetric ? 'symmetric' : 'asymmetric'}">
+										<button
+											on:click={() => {
+												set_corresponding_symmetries(n, i, j);
+												saved = false;
+											}}
+											disabled={j == (num_cols - 1) / 2}
+										>
+											{#if layout[n][i][j].symmetric}
+												o|o
+											{:else if j == (num_cols - 1) / 2}
+												|
+											{:else if j > (num_cols - 1) / 2}
+												|o
+											{:else}
+												o|
+											{/if}
+										</button>
+									</span>
+								{/if}
 							</div>
 						</td>
 					{/each}
@@ -421,6 +427,13 @@
 		padding: $key_padding;
 		padding-right: $key_padding + 2px;
 		box-shadow: $key_shadow_offset $key_shadow_offset $blue_dark2;
+	}
+	.hide_flags select {
+		height: $key_dimension;
+		// width: $key_dimension;
+		// margin-right: -2px;
+		// margin-top: 1px;
+		// font-size: 14px;
 	}
 	.no_keycode {
 		background-color: $background3;
@@ -485,10 +498,15 @@
 	}
 	.keycode_fade {
 		position: absolute;
-		height: 32px;
 		width: 66px;
 		background: rgba(0, 0, 0, 0.2);
 		pointer-events: none;
 		border-radius: 8px;
+	}
+	.keycode_fade_show_flags {
+		height: $key_dimension / 2; //32px;
+	}
+	.keycode_fade_hide_flags {
+		height: $key_dimension;
 	}
 </style>

@@ -13,6 +13,7 @@
 	import { Tooltip, tooltip } from "@svelte-plugins/tooltips";
 	import { fade, slide } from 'svelte/transition'
 	import { copy } from "svelte-copy";
+	import { hide } from '@tauri-apps/api/app';
 	
 
 	// let visible = false
@@ -20,13 +21,18 @@
 	// const keycode_options_info = "Options to specify the set of keycodes to which text should be translated; included in this specification are which keycodes should be treated as shifted versions of their base keycodes (e.g., should \"plus\" get its own keycode or should it be treated as \"shift + equals\"). The shift key itself and all non-shifted keycodes need to appear in the layout or some ngrams won't be typeable."
 	const keycode_list_info = "List of keycodes constructed from the given options. Unless a given keycode is already present in the layout, it will be randomly placed into an empty slot in the layout to form the first generation. Dataset text is translated into these keycodes. This means that if the user wishes to use, for example, \"&\" (AMPR) without needing to type \"shift + 7\", AMPR should appear in this list. Or another way, if AMPR is NOT in this list, then dataset text containing \"&\" will be translated to \"SFT + 7\". Thus, key placement optimization would only be performed on SFT and 7, not AMPR."
 	const convenience_info = "These options cover base, non-shifted keycodes. If toggled off, the user must manually place each alpha and misc symbol themselves. If toggled on, the optimizer will automatically place said symbols, hence, convenience."
-	const specific_info = "These options cover how text should be translated into keycodes, e.g., should \"plus\" be treated as its own keycode or should it be treated as \"shift + equals\"."
+	const specific_info = "These options cover how text should be translated into keycodes, e.g., should \"plus\" be treated as its own keycode or should it be treated as \"shift and equals\"."
+
+	const hide_flags_info = "Hide flags for a cleaner view of the layout."
 
 	/**@type {Object.<string, string>}*/
 	let option_descriptions;
 
 	/**@type {keyof TabComponentMap}*/
 	let active_tab = 'tab1';
+
+	/**@type boolean*/
+	let hide_flags = false;
 
 	/**
 	 * @typedef {Object} TabComponentMap
@@ -555,6 +561,8 @@
 	let config_dir = '';
 	/**@type {number}*/
 	let save_interval_timer;
+
+	let autosave_location = "";
 	onMount(() => {
 		roller = setInterval(() => {
 			if (index === optimizing_wait_messages.length - 1) {
@@ -569,6 +577,7 @@
 		invoke('get_config_dir').then((res) => {
 			config_dir = res;
 			let autosaved_file = `${config_dir}/autosave.toml`;
+			autosave_location = autosaved_file
 			// selected_toml_file = 
 			invoke('does_file_exist', { filename: autosaved_file }).then((res) => {
 				if (res) {
@@ -656,6 +665,7 @@
 		})
 	}
 	
+	
 
 	/**@type {Promise<void>}*/
 	let optimizer_run;
@@ -725,7 +735,7 @@
 	
 </script>
 
-<p>autosaved status: {saved}</p>
+<p>autosaved status: {saved} at {autosave_location}</p>
 
 <div class="header_button">
 	<button on:click={() => open_toml(true, "")}>Load config</button>
@@ -809,6 +819,7 @@
 						layout_size={selected_size}
 						{layout_string}
 						{is_size_from_config}
+						bind:hide_flags
 						bind:saved
 					/>
 				</div>
@@ -852,8 +863,10 @@
 
 			{#if option_descriptions && active_tab != "tab4"}
 				<div class="options {options_display} header_button">
+					<div class="header_button" style="margin-top: 1rem;">
+						<button on:click={() => hide_flags = !hide_flags}>{hide_flags ? "Show" : "Hide"} flags<span class="tooltip_div" use:tooltip={{ content: hide_flags_info, position: 'top', animation: 'slide', theme: "tooltip", maxWidth: 400 }}>&nbsp;<u>?</u></span></button>
+					</div>
 					<button on:click={() => write_toml(true, false)}>Save layout and options as</button>
-					<br />
 					<br />
 					<div style="width: 600px;"><button on:click={compute_score}>Compute score:</button> {typeof current_score == "number" ? current_score.toFixed(4) : current_score}</div>
 					<h1>Options</h1>
