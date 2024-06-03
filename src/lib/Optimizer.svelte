@@ -330,10 +330,10 @@
 				defaultPath: `${config_dir}hello.toml`
 			});
 		} else {
-			save_path = `${config_dir}/autosave.toml`;
+			save_path = `${config_dir}autosave.toml`;
 		}
 		if (should_autosave) {
-			save_path = `${config_dir}/autosave.toml`;
+			save_path = `${config_dir}autosave.toml`;
 		}
 
 		/**@type LayoutInfo*/
@@ -576,7 +576,7 @@
 		}, 1000);
 		invoke('get_config_dir').then((res) => {
 			config_dir = res;
-			let autosaved_file = `${config_dir}/autosave.toml`;
+			let autosaved_file = `${config_dir}autosave.toml`;
 			autosave_location = autosaved_file
 			// selected_toml_file = 
 			invoke('does_file_exist', { filename: autosaved_file }).then((res) => {
@@ -657,7 +657,7 @@
 	async function compute_score() {
 		await write_toml(false, true)
 		// current_score_promise = 
-		invoke("compute_score", {configFile: `${config_dir}/autosave.toml`}).then((res) => {
+		invoke("compute_score", {configFile: `${config_dir}autosave.toml`}).then((res) => {
 			console.log(res)
 			current_score = res
 		}).catch((e) => {
@@ -671,7 +671,7 @@
 	let optimizer_run;
 	async function run_optimizer() {
 		await write_toml(false, true)
-		optimizer_run = invoke("run_optimizer", {filename: `${config_dir}/autosave.toml`}).then(async (res) => {
+		optimizer_run = invoke("run_optimizer", {filename: `${config_dir}autosave.toml`}).then(async (res) => {
 			let show_final_result = await confirm(`Load best layout? A copy can be found at ${res}`)
 			if (show_final_result) {
 				// selected_toml_file = res
