@@ -1026,7 +1026,7 @@
 												type="range"
 												min="0"
 												max="1"
-												step="0.05"
+												step="0.1"
 												bind:value={genetic_options[key]}
 											/>
 											<input type="number" bind:value={genetic_options[key]} />
@@ -1082,19 +1082,19 @@
 												type="range"
 												min="0"
 												max="1"
-												step="0.05"
+												step="0.1"
 												bind:value={score_options[key]}
 											/>
-											<input type="number" min="0" max="1" step="0.05" bind:value={score_options[key]} />
+											<input type="number" min="0" max="1" step="0.1" bind:value={score_options[key]} />
 										{:else}
 											<input
 												type="range"
 												min="1"
 												max="10"
-												step="0.05"
+												step="0.1"
 												bind:value={score_options[key]}
 											/>
-											<input type="number" min="1" max="10" step="0.05" bind:value={score_options[key]} />
+											<input type="number" min="1" max="10" step="0.1" bind:value={score_options[key]} />
 										{/if}
 									</td>
 								</tr>
