@@ -642,10 +642,15 @@
 					value = target.value;
 					break;
 				default:
+					value = target.value;
 					console.log(target.type);
 			}
-			saved = false;
-			compute_score()
+			console.log(`value is ${value}`)
+			if (value) {
+				saved = false;
+				compute_score()
+			}
+			
 		}
 	}
 
@@ -807,7 +812,7 @@
 			class="{active_tab == 'tab4' ? 'active_tab' : 'inactive_tab'} tab">Help</button
 		>
 	</div>
-	<div bind:this={container} on:input={handleChange} on:change={handleChange}>
+	<div bind:this={container} on:change={handleChange}>
 		<div class="tab_contents">
 			<div class="layout">
 				<div class={active_tab == 'tab1' ? 'tabshow' : 'tabhide'}>
@@ -1080,7 +1085,7 @@
 												step="0.05"
 												bind:value={score_options[key]}
 											/>
-											<input type="number" bind:value={score_options[key]} />
+											<input type="number" min="0" max="1" step="0.05" bind:value={score_options[key]} />
 										{:else}
 											<input
 												type="range"
@@ -1089,7 +1094,7 @@
 												step="0.05"
 												bind:value={score_options[key]}
 											/>
-											<input type="number" bind:value={score_options[key]} />
+											<input type="number" min="1" max="10" step="0.05" bind:value={score_options[key]} />
 										{/if}
 									</td>
 								</tr>
