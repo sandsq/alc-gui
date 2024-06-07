@@ -16,14 +16,14 @@ ___Layer 1___
 1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 3|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-4|   NO_10   NO_10   NO_10   NO_10  LS1_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
+4|   NO_10   NO_10   NO_10   NO_10  LS1_00   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 ___Layer 2___
          0       1       2       3       4       5       6       7       8       9      10      11 
 0|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 1|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 2|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
 3|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10 
-4|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10  LS2_10   NO_10   NO_10   NO_10   NO_10 
+4|   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10   NO_10  LS2_00   NO_10   NO_10   NO_10   NO_10 
 """
 effort_layer = """
       0    1    2    3    4    5    6    7    8    9   10   11 
@@ -60,7 +60,7 @@ include_number_symbols = false
 include_brackets = false
 include_misc_symbols = true
 include_misc_symbols_shifted = false
-explicit_inclusions = ["_ENT", "_TAB"]
+explicit_inclusions = []
 
 [layout_optimizer_config.dataset_options]
 dataset_paths = []

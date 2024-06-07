@@ -55,7 +55,7 @@ include_number_symbols = false
 include_brackets = false
 include_misc_symbols = true
 include_misc_symbols_shifted = false
-explicit_inclusions = ["_ENT", "_TAB"]
+explicit_inclusions = []
 
 [layout_optimizer_config.dataset_options]
 dataset_paths = []
