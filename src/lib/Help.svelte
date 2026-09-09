@@ -1,5 +1,5 @@
 <script>
-	import { open as shell_open } from '@tauri-apps/api/shell';
+	import { open as shell_open } from '@tauri-apps/plugin-shell';
 </script>
 
 <h1>Advanced layout calculator</h1>

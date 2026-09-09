@@ -1,7 +1,6 @@
 <script>
 	import { split_layer_to_rows, split_row_to_columns } from './utils.js';
 	import { onMount, afterUpdate } from 'svelte';
-	import { appWindow } from '@tauri-apps/api/window';
 
 	/**@type {number[][]}*/
 	export let effort_layer;

@@ -1,19 +1,21 @@
 <script>
-	import { invoke } from '@tauri-apps/api/tauri';
+	import { invoke } from '@tauri-apps/api/core';
 	import { onMount, onDestroy } from 'svelte';
-	import { open, save, ask } from '@tauri-apps/api/dialog';
+	// `confirm` is imported explicitly to shadow the `window.confirm` shim injected by
+	// tauri-plugin-dialog, which calls a `plugin:dialog|confirm` command that the plugin's
+	// Rust side never registers (fails with "not allowed by ACL"). The exported `confirm`
+	// routes through `plugin:dialog|message`, which works.
+	import { open, save, ask, confirm } from '@tauri-apps/plugin-dialog';
 	import { setContext } from 'svelte';
 	import Layout from './Layout.svelte';
 	import EffortLayer from './EffortLayer.svelte';
 	import PhalanxLayer from './PhalanxLayer.svelte';
 	import Help from "./Help.svelte"
-	import { appWindow } from '@tauri-apps/api/window';
 	import { layer_switch_regex } from './utils';
 	import SvelteMarkdown from 'svelte-markdown';
 	import { Tooltip, tooltip } from "@svelte-plugins/tooltips";
 	import { fade, slide } from 'svelte/transition'
 	import { copy } from "svelte-copy";
-	import { hide } from '@tauri-apps/api/app';
 	
 
 	// let visible = false
