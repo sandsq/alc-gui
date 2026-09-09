@@ -20,8 +20,11 @@ serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "2", features = [] }
 # alc = { git = "https://github.com/sandsq/alc-rs.git" }
 alc = { path = "../../alc-rs" }
-strum = "0.26.2"
-strum_macros = "0.26.2"
+# Must stay in sync with alc-rs: `Keycode` derives strum's `IntoEnumIterator`
+# there, and a version mismatch makes it a different trait (`Keycode::iter()`
+# then fails to resolve).
+strum = "0.28.0"
+strum_macros = "0.28.0"
 dirs = "5.0.1"
 tauri-plugin-dialog = "2"
 tauri-plugin-shell = "2"
